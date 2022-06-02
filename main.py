@@ -29,6 +29,9 @@ async def index(websocket):
                         await websocket.close()
                         return
 
+                    # ENSURE: username is lowercase
+                    user_account['username'] = user_account['username'].lower()
+
                     # ENSURE: username don't have unwanted characters
                     for char in user_account['username']:
                         # characters besides these are declared unwanted
@@ -37,9 +40,6 @@ async def index(websocket):
                             await websocket.send(str({"result": username_unwanted_character}))
                             await websocket.close()
                             return None
-
-                    # ENSURE: username is lowercase
-                    user_account['username'] = user_account['username'].lower()
 
                     # handle namespace connection
                     if namespace:
