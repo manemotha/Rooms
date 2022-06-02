@@ -1,3 +1,7 @@
+import json
+
+import websockets.exceptions
+
 from __init__ import *
 
 
@@ -7,8 +11,37 @@ PORT: str = '5000'
 
 
 # server connection gateway
-async def index(websocket, namespace: str):
-    pass
+async def index(websocket):
+    websocket_address: tuple = websocket.remote_address
+
+    try:
+        async for data in websocket:
+            try:
+                # decode 'data' to proper json or type(dict)
+                json_packet: dict = json.loads(data)
+
+                try:
+                    namespace = json_packet['namespace']
+
+                    if namespace:
+                        pass
+                    else:
+                        await websocket.send(str({'result': 'unknown namespace'}))
+                        await websocket.close()
+
+                # json key error in json_packet
+                except KeyError as error:
+                    await websocket.send(str({'result': f'json error: {error}'}))
+                    await websocket.close()
+
+            # error decoding data: is not proper json
+            except json.decoder.JSONDecodeError as error:
+                await websocket.send(str({'result': f'json error: {error}'}))
+                await websocket.close()
+
+    # client disconnected
+    except websockets.exceptions.ConnectionClosedError:
+        print(websocket_address, 'disconnected')
 
 
 # application server
