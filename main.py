@@ -29,6 +29,15 @@ async def index(websocket):
                         await websocket.close()
                         return
 
+                    # ENSURE: username don't have unwanted characters
+                    for char in user_account['username']:
+                        # characters besides these are declared unwanted
+                        chars: str = "abcdefghijklmnopqrstuvwxyz_0123456789"
+                        if char not in chars:
+                            await websocket.send(str({"result": username_unwanted_character}))
+                            await websocket.close()
+                            return None
+
                     # handle namespace connection
                     if namespace:
 
