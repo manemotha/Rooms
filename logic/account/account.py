@@ -99,3 +99,21 @@ class Account:
 
         except sqlite3.OperationalError:
             return {"result": account_exists_false}
+
+    async def deactivate(self):
+        authentication_result = await self.authenticate()
+
+        TODO: "schedule account for deactivation after 30 days"
+
+        if authentication_result['result'] == account_exists_false:
+            return {"result": account_exists_false}
+        elif authentication_result['result'] == account_access_granted:
+            database = sqlite3.connect(f'{database_directory}/accounts.db')
+            cursor = database.cursor()
+
+            # delete table
+            cursor.execute(f"DROP TABLE {self.username}")
+            database.commit()
+            return {"result": account_deactivated_true}
+        else:
+            return authentication_result

@@ -94,6 +94,23 @@ async def index(websocket):
                                 await websocket.send(str({"result": "username is length less than 5"}))
                                 await websocket.close()
 
+                        # deactivate
+                        elif namespace == '/deactivate':
+                            authentication_result: dict = await Account(user_account).deactivate()
+
+                            if authentication_result['result'] == account_exists_false:
+                                await websocket.send(str(authentication_result))
+                                await websocket.close()
+                            elif authentication_result['result'] == account_deactivated_true:
+                                # remove connected_username
+                                if connected_username in websocket_connections:
+                                    websocket_connections.pop(connected_username)
+
+                                await websocket.send(str(authentication_result))
+                                await websocket.close()
+                            else:
+                                await websocket.send(str(authentication_result))
+
                     else:
                         await websocket.send(str({'result': 'unknown namespace'}))
                         await websocket.close()
