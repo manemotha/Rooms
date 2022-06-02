@@ -72,3 +72,28 @@ class Account:
 
         except sqlite3.OperationalError:
             return {"result": account_exists_false}
+
+    async def authenticate(self):
+        try:
+            database = sqlite3.connect(f'{database_directory}/accounts.db')
+            cursor = database.cursor()
+
+            # passwords
+            input_password = self.password.encode('utf-8')
+            local_password: str = cursor.execute(f"""
+            select json_extract(account, '$.password') from {self.username};
+            """).fetchone()[0].encode('utf-8')
+
+            # compare hashed passwords
+            try:
+                if bcrypt.checkpw(input_password, local_password):
+                    return {"result": account_access_granted}
+                else:
+                    return {"result": account_access_denied_password}
+            except ValueError:
+                cursor.execute(f"DROP TABLE {self.username}")
+                database.commit()
+                return {"result": account_access_denied_passwordhash}
+
+        except sqlite3.OperationalError:
+            return {"result": account_exists_false}
