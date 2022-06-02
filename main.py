@@ -1,7 +1,3 @@
-import json
-
-import websockets.exceptions
-
 from __init__ import *
 
 
@@ -22,9 +18,47 @@ async def index(websocket):
 
                 try:
                     namespace = json_packet['namespace']
+                    user_account = json_packet['account']
+                    user_profile = user_account['profile']
 
+                    # handle namespace connection
                     if namespace:
-                        pass
+
+                        # login
+                        if namespace == '/':
+                            print('login')
+
+                        # signup
+                        elif namespace == '/signup':
+                            if len(user_account['username']) >= 5:
+                                if user_account['email']:
+                                    TODO: "email address verification"
+                                    if len(user_account['password']) >= 8:
+                                        signup_result: dict = await Account(user_account).signup()
+
+                                        if user_account['username'] != "":
+                                            if signup_result['result'] == account_exists_true:
+                                                await websocket.send(str(signup_result))
+                                                await websocket.close()
+                                            elif signup_result['result'] == username_unwanted_character:
+                                                await websocket.send(str(signup_result))
+                                                await websocket.close()
+                                            else:
+                                                await websocket.send(str(signup_result))
+                                                await websocket.close()
+                                    else:
+                                        # password < 8
+                                        await websocket.send(str({"result": "password is length less than 8"}))
+                                        await websocket.close()
+                                else:
+                                    # email is empty
+                                    await websocket.send(str({"result": "email is empty"}))
+                                    await websocket.close()
+                            else:
+                                # username < 5
+                                await websocket.send(str({"result": "username is length less than 5"}))
+                                await websocket.close()
+
                     else:
                         await websocket.send(str({'result': 'unknown namespace'}))
                         await websocket.close()
