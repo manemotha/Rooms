@@ -21,6 +21,14 @@ async def index(websocket):
                     user_account = json_packet['account']
                     user_profile = user_account['profile']
 
+                    # ENSURE: account values are not empty
+                    try:
+                        [user_account['email'], user_account['password'], user_account['username']]
+                    except KeyError:
+                        await websocket.send(str({"result": "empty account value"}))
+                        await websocket.close()
+                        return
+
                     # handle namespace connection
                     if namespace:
 
