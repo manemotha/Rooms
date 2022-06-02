@@ -26,7 +26,15 @@ async def index(websocket):
 
                         # login
                         if namespace == '/':
-                            print('login')
+                            authentication_result: dict = await Account(user_account).login()
+
+                            if authentication_result['result'] == account_exists_false:
+                                await websocket.send(str(authentication_result))
+                                await websocket.close()
+                            elif authentication_result['result'] == account_access_granted:
+                                await websocket.send(str(authentication_result['result']))
+                            else:
+                                await websocket.send(str(authentication_result))
 
                         # signup
                         elif namespace == '/signup':

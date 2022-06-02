@@ -33,3 +33,42 @@ class Account:
 
         except sqlite3.OperationalError:
             return {"result": account_exists_true}
+
+    async def login(self):
+        try:
+            # login with username
+            if self.username:
+                database = sqlite3.connect(f'{database_directory}/accounts.db')
+                cursor = database.cursor()
+
+                # passwords
+                input_password = self.password.encode('utf-8')
+                local_password: str = cursor.execute(f"""
+                select json_extract(account, '$.password') from {self.username};
+                """).fetchone()[0].encode('utf-8')
+
+                # compare hashed passwords
+                try:
+                    if bcrypt.checkpw(input_password, local_password):
+
+                        # user account
+                        account_data: dict = json.loads(cursor.execute(f"""
+                            select json_extract(account, '$') from {self.user_account['username']};
+                            """).fetchone()[0])
+                        account_data.pop('password')  # remove password for security purposes
+
+                        return {"result": account_data}
+                    else:
+                        return {"result": account_access_denied_password}
+                except ValueError:
+                    return {"result": account_access_denied_passwordhash}
+
+            elif self.email:
+                TODO: """
+                + login with email instead of username if username is empty;
+                + iterate tables and find one that matches email & password;
+                """
+                pass
+
+        except sqlite3.OperationalError:
+            return {"result": account_exists_false}
