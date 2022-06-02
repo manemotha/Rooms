@@ -14,4 +14,4 @@ username_unwanted_character: str = "unwanted character in username"
 
 # directory
 # accounts parent directory
-databases_directory = "storage/database/accounts.db"
+database_directory = "storage/database"
