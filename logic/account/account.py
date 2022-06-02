@@ -1,6 +1,3 @@
-import json
-import sqlite3
-
 from .__init__ import *
 
 
@@ -25,6 +22,9 @@ class Account:
             # create user table from username
             cursor.execute(f"""
             CREATE TABLE {self.username} (account json) """)
+
+            # HASH password
+            self.user_account['password'] = bcrypt.hashpw(self.user_account["password"].encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
             # add values
             cursor.execute(f"insert into {self.username} values (?)", [json.dumps(self.user_account)])
