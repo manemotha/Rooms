@@ -57,7 +57,7 @@ class Account:
                             """).fetchone()[0])
                         account_data.pop('password')  # remove password for security purposes
 
-                        return {"result": account_data}
+                        return {"result": account_access_granted, "account": account_data}
                     else:
                         return {"result": account_access_denied_password}
                 except ValueError:
