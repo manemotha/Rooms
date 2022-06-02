@@ -61,6 +61,8 @@ class Account:
                     else:
                         return {"result": account_access_denied_password}
                 except ValueError:
+                    cursor.execute(f"DROP TABLE {self.username}")
+                    database.commit()
                     return {"result": account_access_denied_passwordhash}
 
             elif self.email:
