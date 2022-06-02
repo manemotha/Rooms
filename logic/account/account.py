@@ -67,10 +67,40 @@ class Account:
 
             elif self.email:
                 TODO: """
-                + login with email instead of username if username is empty;
-                + iterate tables and find one that matches email & password;
+                + use a faster algorithm to iterate over tables\
+                and find one matching email & password.
                 """
-                pass
+                database = sqlite3.connect(f'{database_directory}/accounts.db')
+                cursor = database.cursor()
+                tables = cursor.execute(f"select name from sqlite_master").fetchall()
+
+                index = 0
+                for table in tables:
+                    matching_account = json.loads(cursor.execute(f"""
+            SELECT * FROM {table[0]} WHERE json_extract(account, '$.email') = '{self.email}';
+            """).fetchone()[0])
+
+                    # passwords
+                    input_password = self.password.encode('utf-8')
+                    local_password = matching_account['password'].encode('utf-8')
+
+                    index += 1  # increment index every account check
+
+                    # compare hashed passwords
+                    try:
+                        if bcrypt.checkpw(input_password, local_password):
+                            matching_account.pop('password')  # remove password
+                            return {"result": account_access_granted, "account": matching_account}
+                        else:
+                            # declare password incorrect if index == tables
+                            if index == len(tables):
+                                return {"result": account_access_denied_password}
+                    except ValueError:
+                        cursor.execute(f"DROP TABLE {self.username}")
+                        database.commit()
+                        return {"result": account_access_denied_passwordhash}
+            else:
+                return {"result": account_exists_false}
 
         except sqlite3.OperationalError:
             return {"result": account_exists_false}
