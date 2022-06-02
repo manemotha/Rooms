@@ -6,9 +6,14 @@ HOST: str = '0.0.0.0'
 PORT: str = '5000'
 
 
+websocket_connections: dict = {
+    # "username": websocket
+}
+
+
 # server connection gateway
 async def index(websocket):
-    websocket_address: tuple = websocket.remote_address
+    connected_username = str
 
     try:
         async for data in websocket:
@@ -19,7 +24,7 @@ async def index(websocket):
                 try:
                     namespace = json_packet['namespace']
                     user_account = json_packet['account']
-                    user_profile = user_account['profile']
+                    connected_username = user_account['username']
 
                     # ENSURE: account values are not empty
                     try:
@@ -52,7 +57,9 @@ async def index(websocket):
                                 await websocket.send(str(authentication_result))
                                 await websocket.close()
                             elif authentication_result['result'] == account_access_granted:
-                                await websocket.send(str(authentication_result['result']))
+                                await websocket.send(str(authentication_result['account']))
+                                # add websocket to websocket_connections
+                                websocket_connections[connected_username] = websocket
                             else:
                                 await websocket.send(str(authentication_result))
 
@@ -103,7 +110,9 @@ async def index(websocket):
 
     # client disconnected
     except websockets.exceptions.ConnectionClosedError:
-        print(websocket_address, 'disconnected')
+        # remove connected_username
+        if connected_username in websocket_connections:
+            websocket_connections.pop(connected_username)
 
 
 # application server
