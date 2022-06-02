@@ -38,6 +38,9 @@ async def index(websocket):
                             await websocket.close()
                             return None
 
+                    # ENSURE: username is lowercase
+                    user_account['username'] = user_account['username'].lower()
+
                     # handle namespace connection
                     if namespace:
 
