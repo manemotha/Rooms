@@ -39,7 +39,7 @@ async def index(websocket):
                         if char not in chars:
                             await websocket.send(str({"result": username_unwanted_character}))
                             await websocket.close()
-                            return None
+                            return
 
                     # handle namespace connection
                     if namespace:
