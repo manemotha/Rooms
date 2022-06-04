@@ -53,7 +53,7 @@ class Account:
 
                         # user account
                         account_data: dict = json.loads(cursor.execute(f"""
-                            select json_extract(account, '$') from {self.user_account['username']};
+                            select json_extract(account, '$') from {self.username};
                             """).fetchone()[0])
                         account_data.pop('password')  # remove password for security purposes
 
