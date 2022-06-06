@@ -224,7 +224,8 @@ class Account:
             cursor = database.cursor()
 
             # delete table
-            cursor.execute(f"DROP TABLE {self.username}")
+            cursor.execute(f"DELETE FROM {self.table_name} WHERE json_extract("
+                               f"account, '$.username')='{self.username}'")
             database.commit()
             return {"result": account_deactivated_true}
         else:
