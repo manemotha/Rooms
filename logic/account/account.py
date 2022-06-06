@@ -7,7 +7,6 @@ class Account:
 
     def __init__(self, json_packet: dict):
         self.user_account = json_packet
-        self.user_profile = json_packet['profile']
         self.email: str = self.user_account['email']
         self.username: str = self.user_account['username']
         self.password: str = self.user_account['password']
@@ -135,7 +134,7 @@ class Account:
                             "id": result[0],
                             "username": result_account['username'],
                             "email": result_account['email'],
-                            "name": result_account['profile']['name']
+                            "diplayName": result_account['displayName']
                         }
                         accounts_found.append(result_account)
                     # return all accounts matching emails for users to choose from and auto login with username
