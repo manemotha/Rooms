@@ -94,6 +94,29 @@ async def index(websocket):
                                 await websocket.send(str({"result": "username is length less than 5"}))
                                 await websocket.close()
 
+                        # update username
+                        elif namespace == '/update/username':
+                            # ENSURE: updateUsername is lowercase
+                            json_packet['updateUsername'] = json_packet['updateUsername'].lower()
+
+                            if len(json_packet['updateUsername']) >= 5:
+                                # ENSURE: updateUsername don't have unwanted characters
+                                for char in json_packet['updateUsername']:
+                                    # characters besides these are declared unwanted
+                                    chars: str = "abcdefghijklmnopqrstuvwxyz_0123456789"
+                                    if char not in chars:
+                                        await websocket.send(str({"result": username_unwanted_character}))
+                                        await websocket.close()
+                                        return
+
+                                update_result = await Account(user_account).update_username(json_packet['updateUsername'])
+                                await websocket.send(str(update_result))
+                                await websocket.close()
+                            else:
+                                # email is empty
+                                await websocket.send(str({"result": "updateUsername is length less than 5"}))
+                                await websocket.close()
+
                         # deactivate
                         elif namespace == '/deactivate':
                             authentication_result: dict = await Account(user_account).deactivate()

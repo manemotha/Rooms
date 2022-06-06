@@ -212,6 +212,61 @@ class Account:
         except sqlite3.OperationalError:
             return {"result": account_exists_false}
 
+    async def update_username(self, update_username: str):
+        try:
+            database = sqlite3.connect(f'{database_directory}/accounts.db')
+            cursor = database.cursor()
+
+            # if username is not empty
+            if self.username:
+                authentication_result = await self.authenticate()
+
+                if authentication_result['result'] == account_access_granted:
+
+                    # check if account exists using update_username
+                    if not cursor.execute(f"SELECT * FROM {self.table_name} WHERE "
+                                          f"json_extract(account, '$.username')='{update_username}'").fetchall():
+
+                        # HASH password
+                        self.user_account['password'] = bcrypt.hashpw(self.user_account["password"].encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+
+                        # store new username into account_data
+                        self.user_account['username'] = update_username
+
+                        # sqlite update username
+                        cursor.execute(f"UPDATE {self.table_name} SET account='{json.dumps(self.user_account)}' WHERE json_extract(account, '$.username')='{self.username}'")
+
+                        # sqlite get updated user account data from database
+                        user = cursor.execute(f"SELECT * FROM {self.table_name} WHERE json_extract(account, '$.username')='{update_username}'").fetchone()
+
+                        # convert user.account column to proper json/dict
+                        user_account_data = json.loads(user[2])
+                        user_account_data.pop('password')  # remove password for security purposes
+
+                        # group all column into one json/dict
+                        user_data = {
+                            "id": user[0],
+                            "login": user[1],
+                            "account": user_account_data,
+                            "room": user[3],
+                            "message": user[4],
+                            "notification": user[5]
+                        }
+
+                        database.commit()
+                        return {"result": account_username_updated_true, "account": user_data}
+                    # account using update_username already exists
+                    else:
+                        return {"result": account_updateUsername_exists_true}
+                else:
+                    return authentication_result
+            # username is empty
+            else:
+                return {"result": account_exists_false}
+        # database/table does not exist
+        except sqlite3.OperationalError:
+            return {"result": account_exists_false}
+
     async def deactivate(self):
         authentication_result = await self.authenticate()
 
