@@ -65,12 +65,12 @@ class Account:
             return {"result": account_exists_true}
 
     async def login(self):
-        # login with username
-        if self.username:
-            database = sqlite3.connect(f'{database_directory}/accounts.db')
-            cursor = database.cursor()
+        try:
+            # login with username
+            if self.username:
+                database = sqlite3.connect(f'{database_directory}/accounts.db')
+                cursor = database.cursor()
 
-            try:
                 # passwords
                 input_password = self.password.encode('utf-8')
                 local_password: str = cursor.execute(f"""
@@ -109,15 +109,14 @@ class Account:
                                    f"account, '$.username')='{self.username}'")
                     database.commit()
                     return {"result": account_access_denied_passwordhash}
-            # database/table does not exist
-            except TypeError:
-                return {"result": account_exists_false}
+                # database/table does not exist
+                except TypeError:
+                    return {"result": account_exists_false}
 
-        elif self.email:
-            database = sqlite3.connect(f'{database_directory}/accounts.db')
-            cursor = database.cursor()
+            elif self.email:
+                database = sqlite3.connect(f'{database_directory}/accounts.db')
+                cursor = database.cursor()
 
-            try:
                 # user account
                 users: list = cursor.execute(f"""
                     SELECT * FROM {self.table_name} WHERE json_extract(account, '$.email')='{self.email}';
@@ -179,10 +178,10 @@ class Account:
                 # users length == 0
                 else:
                     return {"result": account_exists_false}
-            # database/table does not exist
-            except sqlite3.OperationalError:
+            else:
                 return {"result": account_exists_false}
-        else:
+        # database/table does not exist
+        except sqlite3.OperationalError:
             return {"result": account_exists_false}
 
     async def authenticate(self):
