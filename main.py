@@ -57,7 +57,7 @@ async def index(websocket):
                                 await websocket.send(str(authentication_result))
                                 await websocket.close()
                             elif authentication_result['result'] == account_access_granted:
-                                await websocket.send(str(authentication_result['account']))
+                                await websocket.send(str(authentication_result))
                                 # add websocket to websocket_connections
                                 websocket_connections[connected_username] = websocket
                             else:
