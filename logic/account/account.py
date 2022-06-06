@@ -134,7 +134,9 @@ class Account:
                         # group id & account column
                         result_account = {
                             "id": result[0],
-                            "account": result_account
+                            "username": result_account['username'],
+                            "email": result_account['email'],
+                            "name": result_account['profile']['name']
                         }
                         accounts_found.append(result_account)
                     # return all accounts matching emails for users to choose from and auto login with username
