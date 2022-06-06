@@ -70,44 +70,45 @@ class Account:
                 database = sqlite3.connect(f'{database_directory}/accounts.db')
                 cursor = database.cursor()
 
-                # passwords
-                input_password = self.password.encode('utf-8')
-                local_password: str = cursor.execute(f"""
-                SELECT json_extract(account, '$.password') FROM {self.table_name} WHERE json_extract(account, '$.username')='{self.username}';
-                """).fetchone()[0].encode('utf-8')
-
-                # compare hashed passwords
                 try:
-                    if bcrypt.checkpw(input_password, local_password):
+                    # passwords
+                    input_password = self.password.encode('utf-8')
+                    local_password: str = cursor.execute(f"""
+                    SELECT json_extract(account, '$.password') FROM {self.table_name} WHERE json_extract(account, '$.username')='{self.username}';
+                    """).fetchone()[0].encode('utf-8')
 
-                        # user account
-                        user: dict = cursor.execute(f"""
-                            SELECT * FROM {self.table_name} WHERE json_extract(account, '$.username')='{self.username}';
-                            """).fetchone()
+                    # compare hashed passwords
+                    try:
+                        if bcrypt.checkpw(input_password, local_password):
 
-                        # convert user.account column to proper json/dict
-                        user_account_data = json.loads(user[2])
-                        user_account_data.pop('password')  # remove password for security purposes
+                            # user account
+                            user: dict = cursor.execute(f"""
+                                SELECT * FROM {self.table_name} WHERE json_extract(account, '$.username')='{self.username}';
+                                """).fetchone()
 
-                        # group all column into one json/dict
-                        user_data = {
-                            "id": user[0],
-                            "login": user[1],
-                            "account": user_account_data,
-                            "room": user[3],
-                            "message": user[4],
-                            "notification": user[5]
-                        }
+                            # convert user.account column to proper json/dict
+                            user_account_data = json.loads(user[2])
+                            user_account_data.pop('password')  # remove password for security purposes
 
-                        return {"result": account_access_granted, "account": user_data}
-                    else:
-                        return {"result": account_access_denied_password}
-                # delete row/account if local password is not hashed
-                except ValueError:
-                    cursor.execute(f"DELETE FROM {self.table_name} WHERE json_extract("
-                                   f"account, '$.username')='{self.username}'")
-                    database.commit()
-                    return {"result": account_access_denied_passwordhash}
+                            # group all column into one json/dict
+                            user_data = {
+                                "id": user[0],
+                                "login": user[1],
+                                "account": user_account_data,
+                                "room": user[3],
+                                "message": user[4],
+                                "notification": user[5]
+                            }
+
+                            return {"result": account_access_granted, "account": user_data}
+                        else:
+                            return {"result": account_access_denied_password}
+                    # delete row/account if local password is not hashed
+                    except ValueError:
+                        cursor.execute(f"DELETE FROM {self.table_name} WHERE json_extract("
+                                       f"account, '$.username')='{self.username}'")
+                        database.commit()
+                        return {"result": account_access_denied_passwordhash}
                 # database/table does not exist
                 except TypeError:
                     return {"result": account_exists_false}
@@ -188,24 +189,26 @@ class Account:
             database = sqlite3.connect(f'{database_directory}/accounts.db')
             cursor = database.cursor()
 
-            # passwords
-            input_password = self.password.encode('utf-8')
-            local_password: str = cursor.execute(f"""
-            SELECT json_extract(account, '$.password') FROM {self.table_name} WHERE json_extract(account, '$.username')='{self.username}';
-            """).fetchone()[0].encode('utf-8')
-
-            # compare hashed passwords
             try:
-                if bcrypt.checkpw(input_password, local_password):
-                    return {"result": account_access_granted}
-                else:
-                    return {"result": account_access_denied_password}
-            except ValueError:
-                cursor.execute(f"DELETE FROM {self.table_name} WHERE json_extract("
-                               f"account, '$.username')='{self.username}'")
-                database.commit()
-                return {"result": account_access_denied_passwordhash}
+                # passwords
+                input_password = self.password.encode('utf-8')
+                local_password: str = cursor.execute(f"""
+                SELECT json_extract(account, '$.password') FROM {self.table_name} WHERE json_extract(account, '$.username')='{self.username}';
+                """).fetchone()[0].encode('utf-8')
 
+                # compare hashed passwords
+                try:
+                    if bcrypt.checkpw(input_password, local_password):
+                        return {"result": account_access_granted}
+                    else:
+                        return {"result": account_access_denied_password}
+                except ValueError:
+                    cursor.execute(f"DELETE FROM {self.table_name} WHERE json_extract("
+                                   f"account, '$.username')='{self.username}'")
+                    database.commit()
+                    return {"result": account_access_denied_passwordhash}
+            except TypeError:
+                return {"result": account_exists_false}
         except sqlite3.OperationalError:
             return {"result": account_exists_false}
 
