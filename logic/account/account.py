@@ -1,3 +1,5 @@
+import json
+
 from .__init__ import *
 
 
@@ -23,7 +25,8 @@ class Account:
         cursor = database.cursor()
 
         # create database table if not exists
-        if not cursor.execute(f"SELECT * FROM sqlite_master WHERE type='table' AND name='{self.table_name}'").fetchall():
+        if not cursor.execute(
+                f"SELECT * FROM sqlite_master WHERE type='table' AND name='{self.table_name}'").fetchall():
             cursor.execute(f"CREATE TABLE {self.table_name} ("
                            f"id text,"
                            f"login json,"
@@ -33,10 +36,12 @@ class Account:
                            f"notification json)")
 
         # check if account exists using username
-        if not cursor.execute(f"SELECT * FROM {self.table_name} WHERE json_extract(account, '$.username')='{self.username}'").fetchall():
+        if not cursor.execute(
+                f"SELECT * FROM {self.table_name} WHERE json_extract(account, '$.username')='{self.username}'").fetchall():
 
             # HASH password
-            self.user_account['password'] = bcrypt.hashpw(self.user_account["password"].encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+            self.user_account['password'] = bcrypt.hashpw(self.user_account["password"].encode('utf-8'),
+                                                          bcrypt.gensalt()).decode('utf-8')
 
             # add values
             cursor.execute(f"INSERT INTO {self.table_name} "
@@ -109,39 +114,72 @@ class Account:
                 return {"result": account_exists_false}
 
         elif self.email:
-            TODO: """
-            + use a faster algorithm to iterate over tables\
-            and find one matching email & password.
-            """
             database = sqlite3.connect(f'{database_directory}/accounts.db')
             cursor = database.cursor()
-            tables = cursor.execute(f"select name from sqlite_master").fetchall()
 
-            index = 0
-            for table in tables:
-                matching_account = json.loads(cursor.execute(f"""
-        SELECT * FROM {table[0]} WHERE json_extract(account, '$.email') = '{self.email}';
-        """).fetchone()[0])
+            try:
+                # user account
+                users: list = cursor.execute(f"""
+                    SELECT * FROM {self.table_name} WHERE json_extract(account, '$.email')='{self.email}';
+                    """).fetchall()
 
-                # passwords
-                input_password = self.password.encode('utf-8')
-                local_password = matching_account['password'].encode('utf-8')
+                # found many accounts
+                if len(users) > 1:
+                    accounts_found = []
+                    for result in users:
+                        # account column
+                        result_account: dict = json.loads(result[2])
+                        result_account.pop('password')
 
-                index += 1  # increment index every account check
+                        # group id & account column
+                        result_account = {
+                            "id": result[0],
+                            "account": result_account
+                        }
+                        accounts_found.append(result_account)
+                    # return all accounts matching emails for users to choose from and auto login with username
+                    return {"result": account_access_granted, "account": accounts_found}
 
-                # compare hashed passwords
-                try:
-                    if bcrypt.checkpw(input_password, local_password):
-                        matching_account.pop('password')  # remove password
-                        return {"result": account_access_granted, "account": matching_account}
-                    else:
-                        # declare password incorrect if index == tables
-                        if index == len(tables):
+                # found one account
+                elif len(users) == 1:
+                    # navigate to account column index:2
+                    user: str = users[0]
+
+                    # passwords
+                    input_password = self.password.encode('utf-8')
+                    local_password: str = json.loads(user[2])['password'].encode('utf-8')
+
+                    # convert user.account column to proper json/dict
+                    user_account_data = json.loads(user[2])
+                    user_account_data.pop('password')  # remove password for security purposes
+
+                    # group all column into one json/dict
+                    user_data = {
+                        "id": user[0],
+                        "login": user[1],
+                        "account": user_account_data,
+                        "room": user[3],
+                        "message": user[4],
+                        "notification": user[5]
+                    }
+
+                    # compare hashed passwords
+                    try:
+                        if bcrypt.checkpw(input_password, local_password):
+                            return {"result": account_access_granted, "account": user_data}
+                        else:
                             return {"result": account_access_denied_password}
-                except ValueError:
-                    cursor.execute(f"DROP TABLE {self.username}")
-                    database.commit()
-                    return {"result": account_access_denied_passwordhash}
+                    except ValueError:
+                        cursor.execute(f"DELETE FROM {self.table_name} WHERE json_extract("
+                                       f"account, '$.username')='{self.username}'")
+                        database.commit()
+                        return {"result": account_access_denied_passwordhash}
+                # users length == 0
+                else:
+                    return {"result": account_exists_false}
+            # database/table does not exist
+            except sqlite3.OperationalError:
+                return {"result": account_exists_false}
         else:
             return {"result": account_exists_false}
 
@@ -153,7 +191,7 @@ class Account:
             # passwords
             input_password = self.password.encode('utf-8')
             local_password: str = cursor.execute(f"""
-            select json_extract(account, '$.password') from {self.username};
+            SELECT json_extract(account, '$.password') FROM {self.table_name} WHERE json_extract(account, '$.username')='{self.username}';
             """).fetchone()[0].encode('utf-8')
 
             # compare hashed passwords
@@ -163,7 +201,8 @@ class Account:
                 else:
                     return {"result": account_access_denied_password}
             except ValueError:
-                cursor.execute(f"DROP TABLE {self.username}")
+                cursor.execute(f"DELETE FROM {self.table_name} WHERE json_extract("
+                               f"account, '$.username')='{self.username}'")
                 database.commit()
                 return {"result": account_access_denied_passwordhash}
 
