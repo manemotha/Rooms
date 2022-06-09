@@ -130,6 +130,30 @@ async def index(websocket):
                                 await websocket.send(str({"result": "updateUsername is required"}))
                                 await websocket.close()
 
+                        # update password
+                        elif namespace == '/update/password':
+                            try:
+                                # ENSURE: updatePassword exists
+                                update_password = json_packet['updatePassword']
+
+                                if len(update_password) >= 8:
+                                    if len(user_account['username']) >= 5:
+                                        update_result = await Account(user_account).update_password(update_password)
+                                        await websocket.send(str(update_result))
+                                        await websocket.close()
+                                    else:
+                                        # username is empty
+                                        await websocket.send(str({"result": "username is length less than 5"}))
+                                        await websocket.close()
+                                else:
+                                    # updatePassword is empty
+                                    await websocket.send(str({"result": "updatePassword is length less than 8"}))
+                                    await websocket.close()
+                            # key: updatePassword does not exist
+                            except KeyError:
+                                await websocket.send(str({"result": "updatePassword is required"}))
+                                await websocket.close()
+
                         # deactivate
                         elif namespace == '/deactivate':
                             authentication_result: dict = await Account(user_account).deactivate()
