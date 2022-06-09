@@ -227,33 +227,32 @@ class Account:
                     if not cursor.execute(f"SELECT * FROM {self.table_name} WHERE "
                                           f"json_extract(account, '$.username')='{update_username}'").fetchall():
 
-                        # HASH password
-                        self.user_account['password'] = bcrypt.hashpw(self.user_account["password"].encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+                        # sqlite get user data from database
+                        local_user_data = cursor.execute(f"SELECT * FROM {self.table_name} WHERE json_extract(account, '$.username')='{self.username}'").fetchone()
+                        # convert account column to proper json/dict
+                        local_json_account = json.loads(local_user_data[2])
 
-                        # store new username into account_data
-                        self.user_account['username'] = update_username
+                        # store new username into local_json_account
+                        local_json_account['username'] = update_username
 
                         # sqlite update username
-                        cursor.execute(f"UPDATE {self.table_name} SET account='{json.dumps(self.user_account)}' WHERE json_extract(account, '$.username')='{self.username}'")
+                        cursor.execute(f"UPDATE {self.table_name} SET account='{json.dumps(local_json_account)}' WHERE json_extract(account, '$.username')='{self.username}'")
 
-                        # sqlite get updated user account data from database
-                        user = cursor.execute(f"SELECT * FROM {self.table_name} WHERE json_extract(account, '$.username')='{update_username}'").fetchone()
-
-                        # convert user.account column to proper json/dict
-                        user_account_data = json.loads(user[2])
-                        user_account_data.pop('password')  # remove password for security purposes
-
-                        # group all column into one json/dict
-                        user_data = {
-                            "id": user[0],
-                            "login": user[1],
-                            "account": user_account_data,
-                            "room": user[3],
-                            "message": user[4],
-                            "notification": user[5]
-                        }
-
+                        # save changes
                         database.commit()
+
+                        # remove password for security purposes
+                        local_json_account.pop('password')
+
+                        # group all columns into one json/dict
+                        user_data = {
+                            "id": local_user_data[0],
+                            "login": local_user_data[1],
+                            "account": local_json_account,
+                            "room": local_user_data[3],
+                            "message": local_user_data[4],
+                            "notification": local_user_data[5]
+                        }
                         return {"result": account_username_updated_true, "account": user_data}
                     # account using update_username already exists
                     else:
