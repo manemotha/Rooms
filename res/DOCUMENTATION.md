@@ -16,6 +16,7 @@ This shows you how to play around with Rooms Account like creating,update,removi
 \
 `Method: Signup, Login, Authenticate, UpdateUsername, UpdateEmail, UpdatePassword, Deactivate`
 
+
 ### Signup `method`
 For creating an Account the server requires first a JSON with `"namespace": "/signup"`. With this key, the server knows that a user is trying to create a new account. To create a new account it requires `username, email, password` and every data that goes inside a `SQLITE column: Account` which may be `phone, website, personalInfo, basicInfo`.
 \
@@ -33,13 +34,13 @@ For other SQLITE columns like `login, rooms, message, notification ` on signup t
     {
         "namespace":"/signup",
         "account":{
-            "email":"user.email@gmail.com",
-            "username":"john",
+            "email":"wilson.wick@gmail.com",
+            "username":"wilson",
             "password":"12345678",
             "phone":"483 598 234",
-            "website": "johnwebsite.com",
-            "displayName":"JohnWick",
-            "bio":"Hi! I am John Wick and i wear formal all time",
+            "website": "wilsonwebsite.com",
+            "displayName":"WilsonWick",
+            "bio":"Hi! I am Wilson Wick and i wear formal all time",
             "personalInfo":{
                     "health":["flu","insomnia"],
                     "hobbies":["coding","movies","eating"]},
@@ -52,5 +53,24 @@ For other SQLITE columns like `login, rooms, message, notification ` on signup t
                     "interestedInMen":"false",
                     "interestedInWomen":"true",
                     "maritalStatus": "single"}
+        }
+    }
+
+
+### Login `method`
+For logging into an Account the server requires first a JSON with `"namespace": "/login"`. With this key, the server knows that a user is trying to log into an account. To log in an account it requires `username, email, password`. Email can be used instead of a username incase the user forgets a username. If `username` is empty then the server tries again using the email for authentication.
+
+Logging in using an Email isn't the same as using a username since a username is unique and only one account can have a specific username. But for an email, **multiple** accounts may have the same email and possibly same password too which may raise `security threads` to user accounts `it's recommended to use strong passwords for your accounts`.
+
+So what the server does is to first check how many accounts have a matching email and if over 1 matches the email, the server will return the `id, username, email, displayName` of those accounts for the user to choose from. But if the email only matches one account it will proceed to matching passwords and if a password matches then access will be granted for that user.
+
+#### JSON Example:
+
+    {
+        "namespace":"/",
+        "account":{
+            "email":"user.wick@gmail.com",
+            "username":"wilson",
+            "password":"12345678"
         }
     }
