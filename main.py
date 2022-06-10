@@ -98,7 +98,7 @@ async def index(websocket):
                         elif namespace == '/update/username':
                             try:
                                 # ENSURE: updateUsername exists
-                                update_username = json_packet['updateUsername']
+                                update_username: str = json_packet['updateUsername']
 
                                 # ENSURE: updateUsername is lowercase
                                 update_username = update_username.lower()
@@ -134,7 +134,7 @@ async def index(websocket):
                         elif namespace == '/update/password':
                             try:
                                 # ENSURE: updatePassword exists
-                                update_password = json_packet['updatePassword']
+                                update_password: str = json_packet['updatePassword']
 
                                 if len(update_password) >= 8:
                                     if len(user_account['username']) >= 5:
