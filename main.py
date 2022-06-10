@@ -50,7 +50,7 @@ async def index(websocket):
                     if namespace:
 
                         # login
-                        if namespace == '/':
+                        if namespace == '/login':
                             authentication_result: dict = await Account(user_account).login()
 
                             if authentication_result['result'] == account_exists_false:
