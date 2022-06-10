@@ -3,7 +3,7 @@ from __init__ import *
 
 # server host address ws://HOST:PORT/
 HOST: str = '0.0.0.0'
-PORT: str = '5000'
+PORT: int = 5000
 
 
 websocket_connections: dict = {
