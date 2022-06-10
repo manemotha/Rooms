@@ -67,7 +67,7 @@ So what the server does is to first check how many accounts have a matching emai
 #### JSON Example:
 
     {
-        "namespace":"/",
+        "namespace":"/login",
         "account":{
             "email":"user.wick@gmail.com",
             "username":"wilson",
