@@ -3,16 +3,16 @@ from .__init__ import *
 
 class Rooms:
 
-    def __init__(self, login_data: dict, room: dict):
+    def __init__(self, login_data: dict):
         self.account: dict = login_data
         self.username: str = self.account['username']
         self.email: str = self.account['email']
         self.password: str = self.account['password']
-        self.room: dict = room
-        self.room_title: str = self.room['title']
         self.table_name: str = users_table_name
 
-    async def new_room(self):
+    async def new_room(self, room: dict):
+        room_title: str = room['title']
+
         try:
             database = sqlite3.connect(f'{database_directory}/accounts.db')
             cursor = database.cursor()
@@ -26,13 +26,13 @@ class Rooms:
                 """).fetchone()[0])
 
                 # generate random id from room-title
-                room_id: str = str(id(self.room_title))
+                room_id: str = str(id(room_title))
 
                 # insert id into room_data
-                self.room['id']: str = room_id
+                room['id']: str = room_id
 
                 # set new room KEY using room-id
-                local_rooms[room_id]: dict = self.room
+                local_rooms[room_id]: dict = room
 
                 # update room column
                 cursor.execute(f"UPDATE {self.table_name} SET room='{json.dumps(local_rooms)}' WHERE json_extract(account, '$.username')='{self.username}'")
