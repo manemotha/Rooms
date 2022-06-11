@@ -18,6 +18,9 @@ account_access_denied_passwordhash: str = "access denied: password not hashed \"
 # character
 username_unwanted_character: str = "unwanted character in username"
 
+# database
+users_table_name: str = "users"
+
 # directory
 # accounts parent directory
 database_directory = "storage/database"
