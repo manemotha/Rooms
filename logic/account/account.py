@@ -1,3 +1,5 @@
+import json
+
 from .__init__ import *
 
 
@@ -91,12 +93,12 @@ class Account:
 
                             # group all column into one json/dict
                             user_data = {
-                                "id": user[0],
-                                "login": user[1],
+                                "id": json.loads(user[0]),
+                                "login": json.loads(user[1]),
                                 "account": user_account_data,
-                                "room": user[3],
-                                "message": user[4],
-                                "notification": user[5]
+                                "room": json.loads(user[3]),
+                                "message": json.loads(user[4]),
+                                "notification": json.loads(user[5])
                             }
 
                             return {"result": account_access_granted, "account": user_data}
