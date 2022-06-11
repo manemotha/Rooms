@@ -171,6 +171,25 @@ async def index(websocket):
                             else:
                                 await websocket.send(str(authentication_result))
 
+                        # ------------ ROOM NAMESPACES ------------
+                        elif namespace == '/room/new':
+                            try:
+                                # ENSURE: room exists
+                                room: dict = json_packet['room']
+
+                                if len(user_account['username']) >= 5:
+                                    update_result = await Rooms(user_account, room).new_room()
+                                    await websocket.send(str(update_result))
+                                    await websocket.close()
+                                else:
+                                    # username is empty
+                                    await websocket.send(str({"result": "username is length less than 5"}))
+                                    await websocket.close()
+                            # key: room does not exist
+                            except KeyError:
+                                await websocket.send(str({"result": "room is required"}))
+                                await websocket.close()
+
                     else:
                         await websocket.send(str({'result': 'unknown namespace'}))
                         await websocket.close()
