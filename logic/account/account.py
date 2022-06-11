@@ -50,10 +50,11 @@ class Account:
                            f"notification) VALUES "
                            f"(?,"
                            f"?,"
-                           f"null,"
-                           f"null,"
-                           f"null,"
-                           f"null)", [str(id(self.username)), json.dumps(self.user_account)])
+                           f"?,"
+                           f"?,"
+                           f"?,"
+                           f"?)", [str(id(self.username)), json.dumps(self.user_account), json.dumps({}), json.dumps({}), json.dumps(
+                {}), json.dumps({})])
             database.commit()
             database.close()
             return {"result": account_generated_true}
