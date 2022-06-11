@@ -166,7 +166,7 @@ async def index(websocket):
                                         # ENSURE: room exists
                                         room: dict = json_packet['room']
 
-                                        update_result = await Rooms(user_account, room).new_room()
+                                        update_result = await Rooms(user_account).new_room(room)
                                         await websocket.send(str(update_result))
                                         await websocket.close()
                                     # key: room does not exist

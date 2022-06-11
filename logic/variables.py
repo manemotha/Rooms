@@ -27,6 +27,7 @@ users_table_name: str = "users"
 # rooms
 room_generated_true: str = "room generated: true"
 room_exists_false: str = "room exists: false"
+room_deleted_true: str = "room deleted: true"
 
 # directory
 # accounts parent directory
