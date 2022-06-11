@@ -63,135 +63,127 @@ async def index(websocket):
                             else:
                                 await websocket.send(str(authentication_result))
 
-                        # signup
-                        elif namespace == '/signup':
+                        else:
+                            # ensure username is >= 5
                             if len(user_account['username']) >= 5:
-                                if user_account['email']:
-                                    TODO: "email address verification"
-                                    if len(user_account['password']) >= 8:
-                                        signup_result: dict = await Account(user_account).signup()
 
-                                        if user_account['username'] != "":
-                                            if signup_result['result'] == account_exists_true:
-                                                await websocket.send(str(signup_result))
-                                                await websocket.close()
-                                            elif signup_result['result'] == username_unwanted_character:
-                                                await websocket.send(str(signup_result))
-                                                await websocket.close()
-                                            else:
-                                                await websocket.send(str(signup_result))
-                                                await websocket.close()
+                                # ----------- ACCOUNT NAMESPACES -----------
+                                if namespace == '/signup':
+                                    if user_account['email']:
+                                        TODO: "email address verification"
+                                        if len(user_account['password']) >= 8:
+                                            signup_result: dict = await Account(user_account).signup()
+
+                                            if user_account['username'] != "":
+                                                if signup_result['result'] == account_exists_true:
+                                                    await websocket.send(str(signup_result))
+                                                    await websocket.close()
+                                                elif signup_result['result'] == username_unwanted_character:
+                                                    await websocket.send(str(signup_result))
+                                                    await websocket.close()
+                                                else:
+                                                    await websocket.send(str(signup_result))
+                                                    await websocket.close()
+                                        else:
+                                            # password < 8
+                                            await websocket.send(str({"result": "password is length less than 8"}))
+                                            await websocket.close()
                                     else:
-                                        # password < 8
-                                        await websocket.send(str({"result": "password is length less than 8"}))
+                                        # email is empty
+                                        await websocket.send(str({"result": "email is empty"}))
                                         await websocket.close()
+
+                                # update username
+                                elif namespace == '/update/username':
+                                    try:
+                                        # ENSURE: updateUsername exists
+                                        update_username: str = json_packet['updateUsername']
+
+                                        # ENSURE: updateUsername is lowercase
+                                        update_username = update_username.lower()
+
+                                        if len(update_username) >= 5:
+                                            # ENSURE: updateUsername don't have unwanted characters
+                                            for char in update_username:
+                                                # characters besides these are declared unwanted
+                                                chars: str = "abcdefghijklmnopqrstuvwxyz_0123456789"
+                                                if char not in chars:
+                                                    await websocket.send(str({"result": username_unwanted_character}))
+                                                    await websocket.close()
+                                                    return
+
+                                            update_result = await Account(user_account).update_username(update_username)
+                                            await websocket.send(str(update_result))
+                                            await websocket.close()
+                                        else:
+                                            # updateUsername is empty
+                                            await websocket.send(str({"result": "updateUsername is length less than 5"}))
+                                            await websocket.close()
+                                    # key: updateUsername does not exist
+                                    except KeyError:
+                                        await websocket.send(str({"result": "updateUsername is required"}))
+                                        await websocket.close()
+
+                                # update password
+                                elif namespace == '/update/password':
+                                    try:
+                                        # ENSURE: updatePassword exists
+                                        update_password: str = json_packet['updatePassword']
+
+                                        if len(update_password) >= 8:
+                                            update_result = await Account(user_account).update_password(update_password)
+                                            await websocket.send(str(update_result))
+                                            await websocket.close()
+                                        else:
+                                            # updatePassword is empty
+                                            await websocket.send(str({"result": "updatePassword is length less than 8"}))
+                                            await websocket.close()
+                                    # key: updatePassword does not exist
+                                    except KeyError:
+                                        await websocket.send(str({"result": "updatePassword is required"}))
+                                        await websocket.close()
+
+                                # deactivate
+                                elif namespace == '/deactivate':
+                                    authentication_result: dict = await Account(user_account).deactivate()
+
+                                    if authentication_result['result'] == account_exists_false:
+                                        await websocket.send(str(authentication_result))
+                                        await websocket.close()
+                                    elif authentication_result['result'] == account_deactivated_true:
+                                        # remove connected_username
+                                        if connected_username in websocket_connections:
+                                            websocket_connections.pop(connected_username)
+
+                                        await websocket.send(str(authentication_result))
+                                        await websocket.close()
+                                    else:
+                                        await websocket.send(str(authentication_result))
+
+                                # ------------ ROOM NAMESPACES ------------
+                                elif namespace == '/room/new':
+                                    try:
+                                        # ENSURE: room exists
+                                        room: dict = json_packet['room']
+
+                                        update_result = await Rooms(user_account, room).new_room()
+                                        await websocket.send(str(update_result))
+                                        await websocket.close()
+                                    # key: room does not exist
+                                    except KeyError:
+                                        await websocket.send(str({"result": "room is required"}))
+                                        await websocket.close()
+                                # unknown namespace
                                 else:
-                                    # email is empty
-                                    await websocket.send(str({"result": "email is empty"}))
+                                    await websocket.send(str({'result': unknown_namespace}))
                                     await websocket.close()
                             else:
-                                # username < 5
+                                # username is less than 5
                                 await websocket.send(str({"result": "username is length less than 5"}))
                                 await websocket.close()
-
-                        # update username
-                        elif namespace == '/update/username':
-                            try:
-                                # ENSURE: updateUsername exists
-                                update_username: str = json_packet['updateUsername']
-
-                                # ENSURE: updateUsername is lowercase
-                                update_username = update_username.lower()
-
-                                if len(update_username) >= 5:
-                                    if len(user_account['username']) >= 5:
-                                        # ENSURE: updateUsername don't have unwanted characters
-                                        for char in update_username:
-                                            # characters besides these are declared unwanted
-                                            chars: str = "abcdefghijklmnopqrstuvwxyz_0123456789"
-                                            if char not in chars:
-                                                await websocket.send(str({"result": username_unwanted_character}))
-                                                await websocket.close()
-                                                return
-
-                                        update_result = await Account(user_account).update_username(update_username)
-                                        await websocket.send(str(update_result))
-                                        await websocket.close()
-                                    else:
-                                        # username is empty
-                                        await websocket.send(str({"result": "username is length less than 5"}))
-                                        await websocket.close()
-                                else:
-                                    # updateUsername is empty
-                                    await websocket.send(str({"result": "updateUsername is length less than 5"}))
-                                    await websocket.close()
-                            # key: updateUsername does not exist
-                            except KeyError:
-                                await websocket.send(str({"result": "updateUsername is required"}))
-                                await websocket.close()
-
-                        # update password
-                        elif namespace == '/update/password':
-                            try:
-                                # ENSURE: updatePassword exists
-                                update_password: str = json_packet['updatePassword']
-
-                                if len(update_password) >= 8:
-                                    if len(user_account['username']) >= 5:
-                                        update_result = await Account(user_account).update_password(update_password)
-                                        await websocket.send(str(update_result))
-                                        await websocket.close()
-                                    else:
-                                        # username is empty
-                                        await websocket.send(str({"result": "username is length less than 5"}))
-                                        await websocket.close()
-                                else:
-                                    # updatePassword is empty
-                                    await websocket.send(str({"result": "updatePassword is length less than 8"}))
-                                    await websocket.close()
-                            # key: updatePassword does not exist
-                            except KeyError:
-                                await websocket.send(str({"result": "updatePassword is required"}))
-                                await websocket.close()
-
-                        # deactivate
-                        elif namespace == '/deactivate':
-                            authentication_result: dict = await Account(user_account).deactivate()
-
-                            if authentication_result['result'] == account_exists_false:
-                                await websocket.send(str(authentication_result))
-                                await websocket.close()
-                            elif authentication_result['result'] == account_deactivated_true:
-                                # remove connected_username
-                                if connected_username in websocket_connections:
-                                    websocket_connections.pop(connected_username)
-
-                                await websocket.send(str(authentication_result))
-                                await websocket.close()
-                            else:
-                                await websocket.send(str(authentication_result))
-
-                        # ------------ ROOM NAMESPACES ------------
-                        elif namespace == '/room/new':
-                            try:
-                                # ENSURE: room exists
-                                room: dict = json_packet['room']
-
-                                if len(user_account['username']) >= 5:
-                                    update_result = await Rooms(user_account, room).new_room()
-                                    await websocket.send(str(update_result))
-                                    await websocket.close()
-                                else:
-                                    # username is empty
-                                    await websocket.send(str({"result": "username is length less than 5"}))
-                                    await websocket.close()
-                            # key: room does not exist
-                            except KeyError:
-                                await websocket.send(str({"result": "room is required"}))
-                                await websocket.close()
-
+                    # unknown namespace
                     else:
-                        await websocket.send(str({'result': 'unknown namespace'}))
+                        await websocket.send(str({'result': unknown_namespace}))
                         await websocket.close()
 
                 # json key error in json_packet
