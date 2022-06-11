@@ -21,6 +21,10 @@ username_unwanted_character: str = "unwanted character in username"
 # database
 users_table_name: str = "users"
 
+# rooms
+room_generated_true: str = "room generated: true"
+room_exists_false: str = "room exists: false"
+
 # directory
 # accounts parent directory
 database_directory = "storage/database"
