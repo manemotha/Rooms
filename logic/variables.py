@@ -1,3 +1,6 @@
+# namespaces
+unknown_namespace: str = "unknown namespace"
+
 # account & account-dir
 account_generated_true: str = "account generated: true"
 account_deactivated_true: str = "account deactivate: true"
