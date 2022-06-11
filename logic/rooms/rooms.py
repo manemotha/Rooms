@@ -5,12 +5,12 @@ class Rooms:
 
     def __init__(self, login_data: dict, room: dict):
         self.account: dict = login_data
-        self.username = self.account['username']
-        self.email = self.account['email']
-        self.password = self.account['password']
+        self.username: str = self.account['username']
+        self.email: str = self.account['email']
+        self.password: str = self.account['password']
         self.room: dict = room
         self.room_title: str = self.room['title']
-        self.table_name = users_table_name
+        self.table_name: str = users_table_name
 
     async def new_room(self):
         try:
