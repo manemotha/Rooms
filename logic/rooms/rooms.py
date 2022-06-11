@@ -25,8 +25,14 @@ class Rooms:
                 SELECT json_extract(room, '$') FROM {self.table_name} WHERE json_extract(account, '$.username')='{self.username}';
                 """).fetchone()[0])
 
-                # set new room using room-title
-                local_rooms[str(id(self.room_title))]: dict = self.room
+                # generate random id from room-title
+                room_id: str = str(id(self.room_title))
+
+                # insert id into room_data
+                self.room['id']: str = room_id
+
+                # set new room KEY using room-id
+                local_rooms[room_id]: dict = self.room
 
                 # update room column
                 cursor.execute(f"UPDATE {self.table_name} SET room='{json.dumps(local_rooms)}' WHERE json_extract(account, '$.username')='{self.username}'")
