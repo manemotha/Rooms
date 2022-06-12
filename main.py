@@ -6,14 +6,14 @@ HOST: str = '0.0.0.0'
 PORT: int = 5000
 
 
-websocket_connections: dict = {
+connected_accounts: dict = {
     # "username": websocket
 }
 
 
 # server connection gateway
 async def index(websocket):
-    connected_username = str
+    account_id = str
 
     try:
         async for data in websocket:
@@ -24,7 +24,6 @@ async def index(websocket):
                 try:
                     namespace = json_packet['namespace']
                     user_account = json_packet['account']
-                    connected_username = user_account['username']
 
                     # ENSURE: account values are not empty
                     try:
@@ -58,8 +57,9 @@ async def index(websocket):
                                 await websocket.close()
                             elif authentication_result['result'] == account_access_granted:
                                 await websocket.send(str(authentication_result))
-                                # add websocket to websocket_connections
-                                websocket_connections[connected_username] = websocket
+                                account_id = authentication_result['account']['id']
+                                # add websocket to connected_accounts
+                                connected_accounts[account_id] = websocket
                             else:
                                 await websocket.send(str(authentication_result))
 
@@ -152,8 +152,8 @@ async def index(websocket):
                                         await websocket.close()
                                     elif authentication_result['result'] == account_deactivated_true:
                                         # remove connected_username
-                                        if connected_username in websocket_connections:
-                                            websocket_connections.pop(connected_username)
+                                        if account_id in connected_accounts:
+                                            connected_accounts.pop(account_id)
 
                                         await websocket.send(str(authentication_result))
                                         await websocket.close()
@@ -211,8 +211,8 @@ async def index(websocket):
     # client disconnected
     except websockets.exceptions.ConnectionClosedError:
         # remove connected_username
-        if connected_username in websocket_connections:
-            websocket_connections.pop(connected_username)
+        if account_id in connected_accounts:
+            connected_accounts.pop(account_id)
 
 
 # application server
