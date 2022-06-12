@@ -44,3 +44,41 @@ class Rooms:
         # database/table does not exist
         except sqlite3.OperationalError:
             return {"result": account_exists_false}
+
+    async def delete(self, room_id: str):
+        try:
+            database = sqlite3.connect(f'{database_directory}/accounts.db')
+            cursor = database.cursor()
+
+            authentication_result = await Account(self.account).authenticate()
+
+            if authentication_result['result'] == account_access_granted:
+
+                # if roomId is not empty
+                if room_id:
+                    # check if room exists
+                    if cursor.execute(f"""
+                    SELECT json_extract(room, '$.{room_id}') FROM {self.table_name} WHERE json_extract(account, '$.username')='{self.username}';
+                    """).fetchone()[0]:
+                        # get all local rooms
+                        local_rooms: dict = json.loads(cursor.execute(f"""
+                        SELECT json_extract(room, '$') FROM {self.table_name} WHERE json_extract(account, '$.username')='{self.username}';
+                        """).fetchone()[0])
+
+                        # pop room matching room_id
+                        local_rooms.pop(room_id)
+
+                        # update room column
+                        cursor.execute(f"UPDATE {self.table_name} SET room='{json.dumps(local_rooms)}' WHERE json_extract(account, '$.username')='{self.username}'")
+                        database.commit()
+                        database.close()
+                        return {"result": room_deleted_true, "rooms": local_rooms}
+                    else:
+                        return {"result": room_exists_false}
+                else:
+                    return {"result": room_exists_false}
+            else:
+                return authentication_result
+        # database/table does not exist
+        except sqlite3.OperationalError:
+            return {"result": account_exists_false}
