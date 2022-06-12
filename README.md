@@ -92,7 +92,7 @@ For an `example` if a user has two devices logged into his account and one of th
 
 `Authentication` is a private method that only operates within the server so client connections won't have direct access to it through `namespaces` but they could use `/login` instead.
 
-### Authentication `method`
+### Deactivate`method`
 For deactivating an Account the server requires first a JSON with `"namespace": "/deactivate"`. Now the server knows that you're trying to remove your account and it will require `username, password` for authentication.
 
 To deactivate a Rooms account is just deleting a row in a `SQLITE Database` so it takes less than a minute to finish removing the whole account. 
