@@ -74,3 +74,20 @@ So what the server does is to first check how many accounts have a matching emai
             "password":"12345678"
         }
     }
+
+### Authentication `method`
+Is a method used within the server for authenticating every function it goes through like **creating** or **delete** a Room. This is made so the server easily notice any security changes to the account.
+
+For an `example` if a user has two devices logged into his account and one of these devices is not being operated by him. If he decides to change the password then the other device will no longer be authorized, so it won't have access to the user's account.
+
+`Authentication` is a private method that only operates within the server so client connections won't have direct access to it through `namespaces` but they could use `/login` instead.
+
+### Authentication `method`
+For deactivating an Account the server requires first a JSON with `"namespace": "/deactivate"`. Now the server knows that you're trying to remove your account and it will require `username, password` for authentication.
+
+To deactivate a Rooms account is just deleting a row in a `SQLITE Database` so it takes less than a minute to finish removing the whole account. 
+
+But as we're hoping there be no hackers, there might be mistakes where a user exposes its authentication data in public and someone tries to deactivate their account.
+So to try and prevent this from happening we use a strategy to schedule an account for deactivation after an amount of time.
+
+**Rooms** account takes `30 days` to finally deactivate `permanently`, every user data is deleted and also the username is declared open to be used by another account.
