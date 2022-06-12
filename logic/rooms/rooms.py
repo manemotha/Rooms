@@ -38,7 +38,7 @@ class Rooms:
                 cursor.execute(f"UPDATE {self.table_name} SET room='{json.dumps(local_rooms)}' WHERE json_extract(account, '$.username')='{self.username}'")
                 database.commit()
                 database.close()
-                return {"result": room_generated_true}
+                return {"result": room_generated_true, "rooms": local_rooms}
             else:
                 return authentication_result
         # database/table does not exist
