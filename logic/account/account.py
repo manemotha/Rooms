@@ -313,10 +313,69 @@ class Account:
         except sqlite3.OperationalError:
             return {"result": account_exists_false}
 
+    async def follow(self, friend_id: str):
+        try:
+            database = sqlite3.connect(f'{database_directory}/accounts.db')
+            cursor = database.cursor()
+
+            authentication_result = await Account(self.user_account).authenticate()
+
+            if authentication_result['result'] == account_access_granted:
+                # get current user SQLITE row
+                authored_user: dict = cursor.execute(f"""
+                SELECT * FROM {self.table_name} WHERE json_extract(account, '$.username')='{self.username}';
+                """).fetchall()[0]
+                # get current user account
+                authored_user_account: dict = json.loads(authored_user[2])
+                authored_user_account.pop('password')  # remove password
+                # get current user id
+                authored_user_id: str = authored_user[0]
+
+                if friend_id == authored_user_id:
+                    return {"result": "friend account exists: false"}
+
+                # check if friend account exist
+                try:
+                    # get friend account
+                    friend_account: dict = json.loads(cursor.execute(f"""
+                    SELECT json_extract(account, '$') FROM {self.table_name} WHERE id='{friend_id}';
+                    """).fetchone()[0])
+                except sqlite3.OperationalError:
+                    return {"result": "friend account exists: false"}
+
+                # check if following & follower keys exist
+                try:
+                    [authored_user_account['following'], friend_account['follower']]
+                # keys don't exist
+                except KeyError:
+                    authored_user_account['following'] = list
+                    friend_account['follower'] = list
+
+                # insert friend_id in currentUserId following list
+                authored_user_account['following'].append(friend_id)
+
+                # update currentUserAccount
+                cursor.execute(f"UPDATE {self.table_name} SET account='{json.dumps(authored_user_account)}' WHERE json_extract(account, '$.username')='{self.username}'")
+                database.commit()
+
+                # insert currentUserId in friend_id follower list
+                friend_account['follower'].append(authored_user_id)
+
+                # update mate account
+                cursor.execute(f"UPDATE {self.table_name} SET account='{json.dumps(friend_account)}' WHERE json_extract(account, '$.username')='{self.username}'")
+                database.commit()
+                database.close()
+
+                return {"result": "follow submitted", "account": authored_user_account}
+            else:
+                return authentication_result
+        # database/table does not exist
+        except sqlite3.OperationalError:
+            return {"result": account_exists_false}
+
     async def deactivate(self):
         authentication_result = await self.authenticate()
 
-        TODO: "schedule account for deactivation after 30 days"
 
         if authentication_result['result'] == account_exists_false:
             return {"result": account_exists_false}
