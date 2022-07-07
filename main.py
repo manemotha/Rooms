@@ -70,6 +70,7 @@ async def index(websocket):
                                 # ----------- ACCOUNT NAMESPACES -----------
                                 if namespace == '/signup':
                                     if user_account['email']:
+                                        TODO: "email address verification"
                                         if len(user_account['password']) >= 8:
                                             signup_result: dict = await Account(user_account).signup()
 
@@ -140,19 +141,6 @@ async def index(websocket):
                                     # key: updatePassword does not exist
                                     except KeyError:
                                         await websocket.send(str({"result": "updatePassword is required"}))
-                                        await websocket.close()
-
-                                elif namespace == '/follow':
-                                    try:
-                                        # ENSURE: friendId exists
-                                        friend_id: str = json_packet['friendId']
-
-                                        follow_result = await Account(user_account).follow(friend_id)
-                                        await websocket.send(str(follow_result))
-                                        await websocket.close()
-                                    # key: friendId does not exist
-                                    except KeyError:
-                                        await websocket.send(str({"result": "friendId is required"}))
                                         await websocket.close()
 
                                 # deactivate
