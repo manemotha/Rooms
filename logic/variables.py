@@ -6,8 +6,6 @@ account_generated_true: str = "account generated: true"
 account_deactivated_true: str = "account deactivate: true"
 account_exists_true: str = "account exists: true"
 account_exists_false: str = "account exists: false"
-account_dir_exists: str = "account dir exists: true but not account"
-account_dir_exists_restored: str = "account dir exists: true but not account \"directory removed\""
 
 # account update
 account_updateUsername_exists_true: str = "account updateUsername exists: true"
