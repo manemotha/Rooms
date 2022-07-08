@@ -276,6 +276,14 @@ class Account:
 
                 if authentication_result['result'] == account_access_granted:
 
+                    # try authentication using update_password
+                    # compare update_password with local_password
+                    self.password = update_password
+                    password_result = await self.authenticate()
+                    # handle if update_password grants access
+                    if password_result['result'] == account_access_granted:
+                        return {"result": account_updatePassword_match_oldPassword}
+
                     # sqlite get user data from database
                     local_user_data = cursor.execute(f"SELECT * FROM {self.table_name} WHERE json_extract(account, '$.username')='{self.username}'").fetchone()
                     # convert account column to proper json/dict

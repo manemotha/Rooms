@@ -13,6 +13,7 @@ account_dir_exists_restored: str = "account dir exists: true but not account \"d
 account_updateUsername_exists_true: str = "account updateUsername exists: true"
 account_username_updated_true: str = "username updated: true"
 account_password_update_true: str = "password updated: true"
+account_updatePassword_match_oldPassword: str = "password update: updatePassword match oldPassword"
 
 # access
 account_access_granted: str = "access granted"
