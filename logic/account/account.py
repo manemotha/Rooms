@@ -303,7 +303,7 @@ class Account:
                         "message": local_user_data[4],
                         "notification": local_user_data[5]
                     }
-                    return {"result": account_username_updated_true, "account": user_data}
+                    return {"result": account_password_update_true, "account": user_data}
                 else:
                     return authentication_result
             # username is empty
