@@ -324,8 +324,6 @@ class Account:
     async def deactivate(self):
         authentication_result = await self.authenticate()
 
-        TODO: "schedule account for deactivation after 30 days"
-
         if authentication_result['result'] == account_exists_false:
             return {"result": account_exists_false}
         elif authentication_result['result'] == account_access_granted:
