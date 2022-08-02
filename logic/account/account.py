@@ -217,8 +217,13 @@ class Account:
 
     async def update_password(self, update_password: str):
         try:
-            database = sqlite3.connect(f'{database_directory}/accounts.db')
-            cursor = database.cursor()
+            self.mongodb_connection.server_info()
+
+            # create database connection
+            database = self.mongodb_connection[self.database_name]
+
+            # connect to table
+            table = database.get_collection(self.table_name)
 
             # if username is not empty
             if self.username:
@@ -230,46 +235,29 @@ class Account:
                     # compare update_password with local_password
                     self.password = update_password
                     password_result = await self.authenticate()
+
                     # handle if update_password grants access
                     if password_result['result'] == account_access_granted:
                         return {"result": account_updatePassword_match_oldPassword}
 
-                    # sqlite get user data from database
-                    local_user_data = cursor.execute(f"SELECT * FROM {self.table_name} WHERE json_extract(account, '$.username')='{self.username}'").fetchone()
-                    # convert account column to proper json/dict
-                    local_json_account = json.loads(local_user_data[2])
-
                     # HASH password
-                    local_json_account['password'] = bcrypt.hashpw(update_password.encode('utf-8'),
-                                                          bcrypt.gensalt()).decode('utf-8')
-
+                    hashed_update_password = bcrypt.hashpw(update_password.encode('utf-8'),
+                                                          bcrypt.gensalt())
                     # sqlite update column: account
-                    cursor.execute(f"UPDATE {self.table_name} SET account='{json.dumps(local_json_account)}' WHERE json_extract(account, '$.username')='{self.username}'")
+                    table.update_one({"username": self.username}, {"$set": {"password": hashed_update_password}})
 
-                    # save changes
-                    database.commit()
-
+                    # get user data from database
+                    local_user_data = table.find_one({"username": self.username})
                     # remove password for security purposes
-                    local_json_account.pop('password')
-
-                    # group all columns into one json/dict
-                    user_data = {
-                        "id": local_user_data[0],
-                        "login": local_user_data[1],
-                        "account": local_json_account,
-                        "room": local_user_data[3],
-                        "message": local_user_data[4],
-                        "notification": local_user_data[5]
-                    }
-                    return {"result": account_password_update_true, "account": user_data}
+                    local_user_data.pop('password')
+                    return {"result": account_password_update_true, "account": local_user_data}
                 else:
                     return authentication_result
             # username is empty
             else:
                 return {"result": account_exists_false}
-        # database/table does not exist
-        except sqlite3.OperationalError:
-            return {"result": account_exists_false}
+        except pymongo.errors.ConnectionFailure:
+            return {"result": "error connecting to mongodb database"}
 
     async def deactivate(self):
         authentication_result = await self.authenticate()
