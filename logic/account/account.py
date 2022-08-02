@@ -260,18 +260,22 @@ class Account:
             return {"result": "error connecting to mongodb database"}
 
     async def deactivate(self):
-        authentication_result = await self.authenticate()
+        try:
+            self.mongodb_connection.server_info()
 
-        if authentication_result['result'] == account_exists_false:
-            return {"result": account_exists_false}
-        elif authentication_result['result'] == account_access_granted:
-            database = sqlite3.connect(f'{database_directory}/accounts.db')
-            cursor = database.cursor()
+            authentication_result = await self.authenticate()
 
-            # delete table
-            cursor.execute(f"DELETE FROM {self.table_name} WHERE json_extract("
-                               f"account, '$.username')='{self.username}'")
-            database.commit()
-            return {"result": account_deactivated_true}
-        else:
-            return authentication_result
+            if authentication_result['result'] == account_exists_false:
+                return {"result": account_exists_false}
+            elif authentication_result['result'] == account_access_granted:
+                # create database connection
+                database = self.mongodb_connection[self.database_name]
+                # connect to table
+                table = database.get_collection(self.table_name)
+                # delete account
+                table.delete_one({"username": self.username})
+                return {"result": account_deactivated_true}
+            else:
+                return authentication_result
+        except pymongo.errors.ConnectionFailure:
+            return {"result": "error connecting to mongodb database"}
