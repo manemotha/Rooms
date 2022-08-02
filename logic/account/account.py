@@ -149,15 +149,18 @@ class Account:
 
     async def authenticate(self):
         try:
-            database = sqlite3.connect(f'{database_directory}/accounts.db')
-            cursor = database.cursor()
+            self.mongodb_connection.server_info()
+
+            # create database connection
+            database = self.mongodb_connection[self.database_name]
+
+            # connect to table
+            table = database.get_collection(self.table_name)
 
             try:
                 # passwords
                 input_password = self.password.encode('utf-8')
-                local_password: str = cursor.execute(f"""
-                SELECT json_extract(account, '$.password') FROM {self.table_name} WHERE json_extract(account, '$.username')='{self.username}';
-                """).fetchone()[0].encode('utf-8')
+                local_password = table.find_one({"username": self.username})["password"]
 
                 # compare hashed passwords
                 try:
@@ -166,14 +169,13 @@ class Account:
                     else:
                         return {"result": account_access_denied_password}
                 except ValueError:
-                    cursor.execute(f"DELETE FROM {self.table_name} WHERE json_extract("
-                                   f"account, '$.username')='{self.username}'")
+                    table.delete_one({"username": self.username})
                     database.commit()
                     return {"result": account_access_denied_passwordhash}
             except TypeError:
                 return {"result": account_exists_false}
-        except sqlite3.OperationalError:
-            return {"result": account_exists_false}
+        except pymongo.errors.ConnectionFailure:
+            return {"result": "error connecting to mongodb database"}
 
     async def update_username(self, update_username: str):
         try:
