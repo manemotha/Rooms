@@ -49,124 +49,108 @@ class Account:
 
     async def login(self):
         try:
+            self.mongodb_connection.server_info()
+
+            # create database connection
+            database = self.mongodb_connection[self.database_name]
+
             # login with username
             if self.username:
-                database = sqlite3.connect(f'{database_directory}/accounts.db')
-                cursor = database.cursor()
 
                 try:
+                    # connect to table
+                    table = database.get_collection(self.table_name)
+
                     # passwords
                     input_password = self.password.encode('utf-8')
-                    local_password: str = cursor.execute(f"""
-                    SELECT json_extract(account, '$.password') FROM {self.table_name} WHERE json_extract(account, '$.username')='{self.username}';
-                    """).fetchone()[0].encode('utf-8')
+                    local_password: str = table.find_one({"username": self.username})["password"]
 
                     # compare hashed passwords
                     try:
                         if bcrypt.checkpw(input_password, local_password):
 
                             # user account
-                            user: dict = cursor.execute(f"""
-                                SELECT * FROM {self.table_name} WHERE json_extract(account, '$.username')='{self.username}';
-                                """).fetchone()
+                            user: dict = table.find_one({"username": self.username})
 
                             # convert user.account column to proper json/dict
-                            user_account_data = json.loads(user[2])
+                            user_account_data = user
                             user_account_data.pop('password')  # remove password for security purposes
 
-                            # group all column into one json/dict
-                            user_data = {
-                                "id": json.loads(user[0]),
-                                "login": json.loads(user[1]),
-                                "account": user_account_data,
-                                "room": json.loads(user[3]),
-                                "message": json.loads(user[4]),
-                                "notification": json.loads(user[5])
-                            }
-
-                            return {"result": account_access_granted, "account": user_data}
+                            return {"result": account_access_granted, "account": user_account_data}
                         else:
                             return {"result": account_access_denied_password}
                     # delete row/account if local password is not hashed
                     except ValueError:
-                        cursor.execute(f"DELETE FROM {self.table_name} WHERE json_extract("
-                                       f"account, '$.username')='{self.username}'")
-                        database.commit()
+                        table.delete_one({"username": self.username})
                         return {"result": account_access_denied_passwordhash}
                 # database/table does not exist
                 except TypeError:
                     return {"result": account_exists_false}
 
             elif self.email:
-                database = sqlite3.connect(f'{database_directory}/accounts.db')
-                cursor = database.cursor()
 
-                # user account
-                users: list = cursor.execute(f"""
-                    SELECT * FROM {self.table_name} WHERE json_extract(account, '$.email')='{self.email}';
-                    """).fetchall()
+                try:
+                    # connect to table
+                    table = database.get_collection(self.table_name)
 
-                # found many accounts
-                if len(users) > 1:
-                    accounts_found = []
-                    for result in users:
-                        # account column
-                        result_account: dict = json.loads(result[2])
-                        result_account.pop('password')
+                    # user account
+                    users = []
+                    for user in table.find({"email": self.email}):
+                        users.append(user)
 
-                        # group id & account column
-                        result_account = {
-                            "id": result[0],
-                            "username": result_account['username'],
-                            "email": result_account['email'],
-                            "diplayName": result_account['displayName']
-                        }
-                        accounts_found.append(result_account)
-                    # return all accounts matching emails for users to choose from and auto login with username
-                    return {"result": account_access_granted, "account": accounts_found}
+                    # found many accounts
+                    if len(users) > 1:
+                        accounts_found = []
+                        for result in users:
+                            # account column
+                            result_account: dict = result
+                            result_account.pop('password')
+                            print(result['_id'])
 
-                # found one account
-                elif len(users) == 1:
-                    # navigate to account column index:2
-                    user: str = users[0]
+                            # group id & account column
+                            result_account = {
+                                "_id": result["_id"],
+                                "username": result_account['username'],
+                                "email": result_account['email'],
+                                "diplayName": result_account['displayName']
+                            }
+                            accounts_found.append(result_account)
+                        # return all accounts matching emails for users to choose from and auto login with username
+                        return {"result": account_access_granted, "account": accounts_found}
 
-                    # passwords
-                    input_password = self.password.encode('utf-8')
-                    local_password: str = json.loads(user[2])['password'].encode('utf-8')
+                    # found one account
+                    elif len(users) == 1:
+                        # reassign variable
+                        user = users[0]
 
-                    # convert user.account column to proper json/dict
-                    user_account_data = json.loads(user[2])
-                    user_account_data.pop('password')  # remove password for security purposes
+                        # passwords
+                        input_password = self.password.encode('utf-8')
+                        local_password = user['password']
 
-                    # group all column into one json/dict
-                    user_data = {
-                        "id": user[0],
-                        "login": user[1],
-                        "account": user_account_data,
-                        "room": user[3],
-                        "message": user[4],
-                        "notification": user[5]
-                    }
+                        # convert user.account column to proper json/dict
+                        user_account_data = user
+                        user_account_data.pop('password')  # remove password for security purposes
 
-                    # compare hashed passwords
-                    try:
-                        if bcrypt.checkpw(input_password, local_password):
-                            return {"result": account_access_granted, "account": user_data}
-                        else:
-                            return {"result": account_access_denied_password}
-                    except ValueError:
-                        cursor.execute(f"DELETE FROM {self.table_name} WHERE json_extract("
-                                       f"account, '$.username')='{self.username}'")
-                        database.commit()
-                        return {"result": account_access_denied_passwordhash}
-                # users length == 0
-                else:
-                    return {"result": account_exists_false}
+                        # compare hashed passwords
+                        try:
+                            if bcrypt.checkpw(input_password, local_password):
+                                return {"result": account_access_granted, "account": user_account_data}
+                            else:
+                                return {"result": account_access_denied_password}
+                        except ValueError:
+                            table.delete_one({"username": self.username})
+                            return {"result": account_access_denied_passwordhash}
+                    # users length == 0
+                    else:
+                        return {"result": account_exists_false}
+                # collection / table does not exist
+                except pymongo.errors.CollectionInvalid:
+                    return  {"result": account_exists_false}
             else:
                 return {"result": account_exists_false}
-        # database/table does not exist
-        except sqlite3.OperationalError:
-            return {"result": account_exists_false}
+        # error connecting to mongodb server
+        except pymongo.errors.ConnectionFailure:
+            return {"result": "error connecting to mongodb database"}
 
     async def authenticate(self):
         try:

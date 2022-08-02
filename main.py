@@ -57,9 +57,14 @@ async def index(websocket):
                                 await websocket.close()
                             elif authentication_result['result'] == account_access_granted:
                                 await websocket.send(str(authentication_result))
-                                account_id = authentication_result['account']['id']
-                                # add websocket to connected_accounts
-                                connected_accounts[account_id] = websocket
+                                # found one account using either username / email
+                                try:
+                                    account_id = authentication_result['account']['_id']
+                                    # add websocket to connected_accounts
+                                    connected_accounts[account_id] = websocket
+                                # found multiple accounts using email
+                                except TypeError:
+                                    pass
                             else:
                                 await websocket.send(str(authentication_result))
 
