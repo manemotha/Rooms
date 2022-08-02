@@ -26,23 +26,18 @@ class Account:
             # create database connection
             database = self.mongodb_connection[self.database_name]
 
-            # create table if table does not exist
-            try:
-                database.create_collection(self.table_name)
-            # table exists
-            except pymongo.errors.CollectionInvalid:
-                # connect to table
-                table = database.get_collection(self.table_name)
+            # connect to table
+            table = database.get_collection(self.table_name)
 
-                # account exists
-                if table.find_one({"username": self.username}):
-                    return {"result": account_exists_true}
-                else:
-                    # hash user password
-                    self.user_account['password'] = bcrypt.hashpw(self.password.encode("utf-8"), bcrypt.gensalt())
-                    # create user account
-                    table.insert_one(self.user_account)
-                    return {"result": account_generated_true}
+            # account exists
+            if table.find_one({"username": self.username}):
+                return {"result": account_exists_true}
+            else:
+                # hash user password
+                self.user_account['password'] = bcrypt.hashpw(self.password.encode("utf-8"), bcrypt.gensalt())
+                # create user account
+                table.insert_one(self.user_account)
+                return {"result": account_generated_true}
 
         except pymongo.errors.ConnectionFailure:
             return {"result": "error connecting to mongodb database"}
