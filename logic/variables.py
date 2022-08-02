@@ -1,3 +1,5 @@
+database_uri = "mongodb://localhost:27017"
+
 # namespaces
 unknown_namespace: str = "unknown namespace"
 

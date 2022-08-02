@@ -1,3 +1,5 @@
+import pymongo.errors
+
 from .__init__ import *
 
 
@@ -9,58 +11,41 @@ class Account:
         self.username: str = self.user_account['username']
         self.password: str = self.user_account['password']
 
+        # mongodb server connection
+        self.mongodb_connection = pymongo.MongoClient(database_uri, serverSelectionTimeoutMS=500)
+
         # database user's account table
         self.table_name = 'users'
+        self.database_name = "demo"
 
     async def signup(self):
-        # if database_directory does not exist
-        if not os.path.exists(database_directory):
-            os.makedirs(database_directory)
+        # test mongodb server connection
+        try:
+            self.mongodb_connection.server_info()
 
-        # create and open database file
-        database = sqlite3.connect(f'{database_directory}/accounts.db')
-        cursor = database.cursor()
+            # create database connection
+            database = self.mongodb_connection[self.database_name]
 
-        # create database table if not exists
-        if not cursor.execute(
-                f"SELECT * FROM sqlite_master WHERE type='table' AND name='{self.table_name}'").fetchall():
-            cursor.execute(f"CREATE TABLE {self.table_name} ("
-                           f"id text,"
-                           f"login json,"
-                           f"account json,"
-                           f"room json,"
-                           f"message json,"
-                           f"notification json)")
+            # create table if table does not exist
+            try:
+                database.create_collection(self.table_name)
+            # table exists
+            except pymongo.errors.CollectionInvalid:
+                # connect to table
+                table = database.get_collection(self.table_name)
 
-        # check if account exists using username
-        if not cursor.execute(
-                f"SELECT * FROM {self.table_name} WHERE json_extract(account, '$.username')='{self.username}'").fetchall():
+                # account exists
+                if table.find_one({"username": self.username}):
+                    return {"result": account_exists_true}
+                else:
+                    # hash user password
+                    self.user_account['password'] = bcrypt.hashpw(self.password.encode("utf-8"), bcrypt.gensalt())
+                    # create user account
+                    table.insert_one(self.user_account)
+                    return {"result": account_generated_true}
 
-            # HASH password
-            self.user_account['password'] = bcrypt.hashpw(self.user_account["password"].encode('utf-8'),
-                                                          bcrypt.gensalt()).decode('utf-8')
-
-            # add values
-            cursor.execute(f"INSERT INTO {self.table_name} "
-                           f"(id,"
-                           f"account,"
-                           f"login,"
-                           f"room,"
-                           f"message,"
-                           f"notification) VALUES "
-                           f"(?,"
-                           f"?,"
-                           f"?,"
-                           f"?,"
-                           f"?,"
-                           f"?)", [str(id(self.username)), json.dumps(self.user_account), json.dumps({}), json.dumps({}), json.dumps(
-                {}), json.dumps({})])
-            database.commit()
-            database.close()
-            return {"result": account_generated_true}
-        else:
-            database.close()
-            return {"result": account_exists_true}
+        except pymongo.errors.ConnectionFailure:
+            return {"result": "error connecting to mongodb database"}
 
     async def login(self):
         try:
