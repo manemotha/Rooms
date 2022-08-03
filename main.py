@@ -169,10 +169,17 @@ async def index(websocket):
                                     try:
                                         # ENSURE: room exists
                                         room: dict = json_packet['room']
+                                        try:
+                                            # ENSURE: room has a title
+                                            room_title: dict = json_packet['room']['title']
 
-                                        update_result = await Rooms(user_account).new_room(room)
-                                        await websocket.send(str(update_result))
-                                        await websocket.close()
+                                            update_result = await Rooms(user_account).new_room(room)
+                                            await websocket.send(str(update_result))
+                                            await websocket.close()
+                                        # key: room title does not exist
+                                        except KeyError:
+                                            await websocket.send(str({"result": "room title is required"}))
+                                            await websocket.close()
                                     # key: room does not exist
                                     except KeyError:
                                         await websocket.send(str({"result": "room is required"}))
