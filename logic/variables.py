@@ -24,6 +24,7 @@ username_unwanted_character: str = "unwanted character in username"
 
 # database
 users_table_name: str = "users"
+users_database_name: str = "demo"
 
 # rooms
 room_generated_true: str = "room generated: true"

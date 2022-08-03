@@ -16,7 +16,7 @@ class Account:
 
         # database user's account table
         self.table_name = users_table_name
-        self.database_name = "demo"
+        self.database_name = users_database_name
 
     async def signup(self):
         # test mongodb server connection
