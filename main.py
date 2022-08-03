@@ -196,6 +196,18 @@ async def index(websocket):
                                     except KeyError:
                                         await websocket.send(str({"result": "roomId is required"}))
                                         await websocket.close()
+                                elif namespace == '/room/search':
+                                    try:
+                                        # ENSURE: roomId exists
+                                        room_id: str = json_packet['roomId']
+
+                                        search_result = await Rooms(user_account).search_room_by_id(room_id)
+                                        await websocket.send(str(search_result))
+                                        await websocket.close()
+                                    # key: roomId does not exist
+                                    except KeyError:
+                                        await websocket.send(str({"result": "roomId is required"}))
+                                        await websocket.close()
                                 # unknown namespace
                                 else:
                                     await websocket.send(str({'result': unknown_namespace}))

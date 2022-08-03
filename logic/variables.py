@@ -30,6 +30,7 @@ users_database_name: str = "demo"
 room_generated_true: str = "room generated: true"
 room_exists_false: str = "room exists: false"
 room_deleted_true: str = "room deleted: true"
+room_match_found: str = "room match found: true"
 
 # directory
 # accounts parent directory
