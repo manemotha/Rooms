@@ -1,3 +1,5 @@
+# this host is for a local MongoDB server
+# change this host to your MongoDB host address
 database_uri = "mongodb://localhost:27017"
 
 # namespaces
@@ -22,8 +24,11 @@ account_access_denied_passwordhash: str = "access denied: password not hashed \"
 # character
 username_unwanted_character: str = "unwanted character in username"
 
-# database
+# this variable is the name of the MongoDB collection created -
+# when you first create an account to the server
 users_table_name: str = "users"
+# this variable is the name of the database created -
+# when you connect to MongoDB server
 users_database_name: str = "demo"
 
 # rooms
