@@ -15,7 +15,7 @@ class Account:
         self.mongodb_connection = pymongo.MongoClient(database_uri, serverSelectionTimeoutMS=500)
 
         # database user's account table
-        self.table_name = 'users'
+        self.table_name = users_table_name
         self.database_name = "demo"
 
     async def signup(self):
