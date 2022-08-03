@@ -47,8 +47,11 @@ class Rooms:
 
     async def delete(self, room_id: str):
         try:
-            database = sqlite3.connect(f'{database_directory}/accounts.db')
-            cursor = database.cursor()
+            self.mongodb_connection.server_info()
+            # create database connection
+            database = self.mongodb_connection[self.database_name]
+            # connect to table
+            table = database.get_collection(self.table_name)
 
             authentication_result = await Account(self.account).authenticate()
 
@@ -56,22 +59,12 @@ class Rooms:
 
                 # if roomId is not empty
                 if room_id:
-                    # check if room exists
-                    if cursor.execute(f"""
-                    SELECT json_extract(room, '$.{room_id}') FROM {self.table_name} WHERE json_extract(account, '$.username')='{self.username}';
-                    """).fetchone()[0]:
+                    # try to remove room
+                    updated_room_result = table.update_one({"username": self.username}, {"$pull": {"rooms": {"id": room_id}}})
+                    # confirm if room existed or was removed
+                    if updated_room_result.raw_result['nModified'] == 1:
                         # get all local rooms
-                        local_rooms: dict = json.loads(cursor.execute(f"""
-                        SELECT json_extract(room, '$') FROM {self.table_name} WHERE json_extract(account, '$.username')='{self.username}';
-                        """).fetchone()[0])
-
-                        # pop room matching room_id
-                        local_rooms.pop(room_id)
-
-                        # update room column
-                        cursor.execute(f"UPDATE {self.table_name} SET room='{json.dumps(local_rooms)}' WHERE json_extract(account, '$.username')='{self.username}'")
-                        database.commit()
-                        database.close()
+                        local_rooms: dict = table.find_one({"username": self.username})["rooms"]
                         return {"result": room_deleted_true, "rooms": local_rooms}
                     else:
                         return {"result": room_exists_false}
@@ -79,6 +72,6 @@ class Rooms:
                     return {"result": room_exists_false}
             else:
                 return authentication_result
-        # database/table does not exist
-        except sqlite3.OperationalError:
-            return {"result": account_exists_false}
+
+        except pymongo.errors.ConnectionFailure:
+            return {"result": "error connecting to mongodb database"}
