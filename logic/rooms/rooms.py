@@ -18,9 +18,6 @@ class Rooms:
         self.database_name = users_database_name
 
     async def new_room(self, room: dict):
-        # generate unique id from room-title
-        # this id is used for CRUD functionalities on this room
-        room['id']: str = str(id(room['title']))
 
         try:
             self.mongodb_connection.server_info()
@@ -29,9 +26,16 @@ class Rooms:
             # connect to table
             table = database.get_collection(self.table_name)
 
+            # authenticate current login
             authentication_result = await Account(self.account).authenticate()
 
             if authentication_result['result'] == account_access_granted:
+                # generate unique id from room-title
+                # this id is used for CRUD functionalities on this room
+                room['id']: str = str(id(room['title']))
+                # use user_id for room authorId
+                room['authorId']: str = table.find_one({"username": self.username})['_id']
+
                 # update / create new room value
                 table.update_one({"username": self.username}, {"$push": {"rooms": room}})
 
