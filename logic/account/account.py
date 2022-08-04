@@ -34,7 +34,7 @@ class Account:
                 return {"result": account_exists_true}
             else:
                 # hash user password
-                self.user_account['password'] = bcrypt.hashpw(self.password.encode("utf-8"), bcrypt.gensalt())
+                self.user_account['password']: bytes = bcrypt.hashpw(self.password.encode("utf-8"), bcrypt.gensalt())
                 # create user account
                 table.insert_one(self.user_account)
                 return {"result": account_generated_true}
