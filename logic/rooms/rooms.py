@@ -35,7 +35,7 @@ class Rooms:
                 room['title']: str = room_title
                 # generate unique id from room-title
                 # this id is used for CRUD functionalities on this room
-                room['id']: str = id(room_title)
+                room['_id']: str = f"room-{id(room_title)}"
                 # use user_id for room authorId
                 room['authorId']: str = table.find_one({"username": self.username})['_id']
 
@@ -67,7 +67,7 @@ class Rooms:
                 # if roomId is not empty
                 if room_id:
                     # try to remove room
-                    updated_room_result = table.update_one({"username": self.username}, {"$pull": {"rooms": {"id": room_id}}})
+                    updated_room_result = table.update_one({"username": self.username}, {"$pull": {"rooms": {"_id": room_id}}})
                     # confirm if room existed or was removed
                     if updated_room_result.raw_result['nModified'] == 1:
                         # get all local rooms
