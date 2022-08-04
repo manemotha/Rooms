@@ -210,6 +210,21 @@ async def index(websocket):
                                     except KeyError:
                                         await websocket.send(str({"result": "roomTitle is required"}))
                                         await websocket.close()
+
+                                # FOLLOW & UNFOLLOW USER
+                                elif namespace == '/follow/user':
+                                    try:
+                                        # ENSURE: userId exists
+                                        user_id: str = json_packet['userId']
+
+                                        follow_result = await Follow(user_account).follow_user_by_id(user_id)
+                                        await websocket.send(str(follow_result))
+                                        await websocket.close()
+                                    # key: userId does not exist
+                                    except KeyError:
+                                        await websocket.send(str({"result": "userId is required"}))
+                                        await websocket.close()
+
                                 # unknown namespace
                                 else:
                                     await websocket.send(str({'result': unknown_namespace}))

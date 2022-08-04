@@ -37,6 +37,7 @@ room_exists_false: str = "room exists: false"
 room_deleted_true: str = "room deleted: true"
 room_match_found: str = "room match found: true"
 
-# directory
-# accounts parent directory
-database_directory = "storage/database"
+# system/follow
+following_account_exists_false: str = "following account exists: false"
+followed_user: str = "followed user"
+unfollowed_user: str = "unfollowed user"

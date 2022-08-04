@@ -12,3 +12,4 @@ import pymongo
 from logic import *
 from logic.variables import *
 from .search import *
+from .follow import *
