@@ -65,11 +65,10 @@ class Account:
                         if bcrypt.checkpw(input_password, local_password):
 
                             # user account
-                            user: dict = table.find_one({"username": self.username})
+                            user_account_data: dict = table.find_one({"username": self.username})
 
-                            # convert user.account column to proper json/dict
-                            user_account_data = user
-                            user_account_data.pop('password')  # remove password for security purposes
+                            # remove password for security purposes
+                            user_account_data.pop('password')
 
                             return {"result": account_access_granted, "account": user_account_data}
                         else:
