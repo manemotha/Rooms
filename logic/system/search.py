@@ -30,9 +30,12 @@ class Search:
             if authentication_result['result'] == account_access_granted:
                 # if roomTitle is not empty
                 if room_title:
+                    # lowercase
+                    room_title = room_title.lower()
                     # store specific rooms matching current room_title
                     matching_rooms = []
                     # get account with room matching title
+                    # NOTICE: I want a better way to search through Mongodb as SQlite "LIKE" function
                     matching_documents = table.find({"rooms.title": room_title})
 
                     # iterate through user_account to return only matching rooms not full account

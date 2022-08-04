@@ -30,9 +30,12 @@ class Rooms:
             authentication_result = await Account(self.account).authenticate()
 
             if authentication_result['result'] == account_access_granted:
+                # lowercase
+                room_title = room['title'].lower()
+                room['title']: str = room_title
                 # generate unique id from room-title
                 # this id is used for CRUD functionalities on this room
-                room['id']: str = str(id(room['title']))
+                room['id']: str = id(room_title)
                 # use user_id for room authorId
                 room['authorId']: str = table.find_one({"username": self.username})['_id']
 
