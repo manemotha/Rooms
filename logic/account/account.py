@@ -100,7 +100,6 @@ class Account:
                             # account column
                             result_account: dict = result
                             result_account.pop('password')
-                            print(result['_id'])
 
                             # group id & account column
                             result_account = {
