@@ -22,7 +22,7 @@ async def index(websocket):
                 json_packet: dict = json.loads(data)
 
                 try:
-                    namespace = json_packet['namespace']
+                    namespace = json_packet['namespace'].lower()
                     user_account = json_packet['account']
 
                     # ENSURE: account values are not empty
