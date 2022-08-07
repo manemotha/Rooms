@@ -80,7 +80,7 @@ async def index(websocket):
                                         if len(user_account['password']) >= 8:
                                             signup_result: dict = await Account(user_account).signup()
 
-                                            if user_account['username'] != "":
+                                            if user_account['username']:
                                                 if signup_result['result'] == account_exists_true:
                                                     await websocket.send(json.dumps(signup_result))
                                                     await websocket.close()
