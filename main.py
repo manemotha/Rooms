@@ -78,6 +78,15 @@ async def index(websocket):
                                 if namespace == '/signup':
                                     if user_account['email']:
                                         if len(user_account['password']) >= 8:
+
+                                            # ensure displayName exists
+                                            try:
+                                                user_account['displayName']
+                                            except KeyError:
+                                                await websocket.send(json.dumps({"result": "displayName is required"}))
+                                                await websocket.close()
+                                                return
+
                                             signup_result: dict = await Account(user_account).signup()
 
                                             if user_account['username']:
