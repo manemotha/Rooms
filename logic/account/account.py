@@ -110,7 +110,7 @@ class Account:
                             }
                             accounts_found.append(result_account)
                         # return all accounts matching emails for users to choose from and auto login with username
-                        return {"result": account_access_granted, "account": accounts_found}
+                        return {"result": "multiple accounts with this email", "account": accounts_found}
 
                     # found one account
                     elif len(users) == 1:
