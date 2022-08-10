@@ -1,5 +1,5 @@
 # ROOMS
-
+______________________
 Is a realtime websocket server for a room / group like chat application. Groups are referred to as **Rooms** and users as **Mates** or **RoomMates** if they have a mutual room.
 
 ### `Functionality`
@@ -9,6 +9,7 @@ Is a realtime websocket server for a room / group like chat application. Groups 
 * Exchange direct messages if willing to communicate outside the Room.
 
 ## Documentation
+______________________
 This document will tell you more on how the server processes it data from its clients. You will have an idea on how to communicate with the server using `JSON` format data. From creating an Account to sending Direct Messages and creating rooms.
 \
 \
@@ -26,8 +27,8 @@ This shows you how to play around with Rooms account's CRUD operations.
 \
 `Method: Signup, Login, Authenticate, UpdateUsername, UpdateEmail, UpdatePassword, Follow, Deactivate`
 
-
 ### Signup `method`
+______________________
 For creating an Account the server requires first a JSON payload with `"namespace": "/signup"`. With this key, the server knows that a user is trying to create a new account. To create a new account it requires `username, email, password` and every data that will be part of the user's account which may be `phone, website, personalInfo, basicInfo`.
 \
 \
@@ -66,8 +67,8 @@ For other MongoDB keys like `login, rooms, message, notification ` on signup the
         }
     }
 
-
 ### Login `method`
+______________________
 For logging into an Account the server requires first a JSON payload with `"namespace": "/login"`. With this key, the server knows that a user is trying to log into an account. To log in an account it requires `username, email, password`. Email can be used instead of a username incase the user forgets a username. If `username` is empty then the server tries using the email for authentication.
 
 Logging in using an Email isn't the same as using a username since a username is unique and only one account can have a specific username. But for an email, **multiple** accounts may have the same email and possibly same password too which may raise `security threads` to user accounts. It's recommended to use strong passwords for your accounts.
@@ -84,15 +85,31 @@ So what the server does is to first check how many accounts have a matching emai
             "password":"12345678"
         }
     }
-
 ### Authentication `method`
+______________________
 Is a method used within the server for authenticating every function it goes through like **creating** or **delete** a Room. This is made so the server easily notice any security changes to the account.
 
 For an `example` if a user has two devices logged into his account and one of these devices is not being operated by him. If he decides to change the password then the other device will no longer be authorized, so it won't have access to the user's account.
 
 `Authentication` is a private method that only operates within the server so client connections won't have direct access to it through `namespaces` but can use `"namespace": "/login"` instead.
+### UpdateDisplayName `method`
+______________________
+DisplayName can be modified to any word with any character and or emoji. But it can not be empty, It'll at least require 1 character. 
 
+#### JSON Example:
+
+    {
+        "namespace":"/update/displayname",
+        "updateDisplayName":"Wilson Python Dev 🙂",
+        "account":{
+            "email":"user.wick@gmail.com",
+            "username":"wilson",
+            "password":"12345678",
+            "displayName":"Wilson Wick",
+        }
+    }
 ### UpdateUsername `method`
+______________________
 Updating a username is easy as logging in. `"namespace":"/update/username"` is used and `"updateUsername":"wilson2022"` is the going to be the new username for this account.
 
 For security purposes the new username will go through same security as the old username when signing up like checking its `length`, checking if it's the same as the old username and checking if any account exists with the same username.
@@ -108,8 +125,8 @@ For security purposes the new username will go through same security as the old 
             "password":"12345678"
         }
     }
-
 ### UpdatePassword `method`
+______________________
 Updating a password is easy as updating a username. `"namespace":"/update/password"` is used and `"updateUsername":"12345678wilson"` is the going to be the new password for this account.
 
 For security purposes the new password will go through same security as the old password when signing up like checking its `length` and checking if it's not the same as the old password.
@@ -125,8 +142,8 @@ For security purposes the new password will go through same security as the old 
             "password":"12345678"
         }
     }
-
 ### Deactivate`method`
+______________________
 For deactivating an Account the server requires first a JSON payload with `"namespace": "/deactivate"`. Now the server knows that you're trying to remove your account and it will require `username, password` for authentication.
 
 Deactivating a Rooms account is basically deleting a `MongoDB Document` so it takes less than a minute to finish removing the whole account. 
