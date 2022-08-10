@@ -14,6 +14,7 @@ account_exists_false: str = "account exists: false"
 # account update
 account_updateUsername_exists_true: str = "account updateUsername exists: true"
 account_username_updated_true: str = "username updated: true"
+account_displayName_updated_true: str = "displayName updated: true"
 account_password_update_true: str = "password updated: true"
 account_updatePassword_match_oldPassword: str = "password update: updatePassword match oldPassword"
 

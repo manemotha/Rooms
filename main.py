@@ -108,6 +108,25 @@ async def index(websocket):
                                         await websocket.send(json.dumps({"result": "email is empty"}))
                                         await websocket.close()
 
+                                # update displayName
+                                elif namespace == '/update/displayname':
+                                    try:
+                                        # ENSURE: updateDisplayName exists
+                                        update_display_name: str = json_packet['updateDisplayName']
+
+                                        if update_display_name:
+                                            update_result = await Account(user_account).update_display_name(update_display_name)
+                                            await websocket.send(json.dumps(update_result))
+                                            await websocket.close()
+                                        else:
+                                            # updateDisplayName is empty
+                                            await websocket.send(json.dumps({"result": "updateDisplayName is empty"}))
+                                            await websocket.close()
+                                    # key: updateDisplayName does not exist
+                                    except KeyError:
+                                        await websocket.send(json.dumps({"result": "updateDisplayName is required"}))
+                                        await websocket.close()
+
                                 # update username
                                 elif namespace == '/update/username':
                                     try:

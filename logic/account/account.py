@@ -176,6 +176,35 @@ class Account:
         except pymongo.errors.ConnectionFailure:
             return {"result": "error connecting to mongodb database"}
 
+    async def update_display_name(self, update_display_name):
+        try:
+            self.mongodb_connection.server_info()
+
+            # create database connection
+            database = self.mongodb_connection[self.database_name]
+
+            # connect to table
+            table = database.get_collection(self.table_name)
+
+            # if username is not empty
+            if self.username:
+                authentication_result = await self.authenticate()
+
+                if authentication_result['result'] == account_access_granted:
+                    table.update_one({"username": self.username}, {"$set": {"displayName": update_display_name}})
+                    # get user data from database
+                    local_user_data = table.find_one({"username": self.username})
+                    # remove password for security purposes
+                    local_user_data.pop('password')
+                    return {"result": account_displayName_updated_true, "account": local_user_data}
+                else:
+                    return authentication_result
+            # username is empty
+            else:
+                return {"result": account_exists_false}
+        except pymongo.errors.ConnectionFailure:
+            return {"result": "error connecting to mongodb database"}
+
     async def update_username(self, update_username: str):
         try:
             self.mongodb_connection.server_info()
