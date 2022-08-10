@@ -1,5 +1,3 @@
-import pymongo.errors
-
 from .__init__ import *
 
 
