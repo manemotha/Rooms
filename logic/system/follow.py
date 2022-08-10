@@ -30,41 +30,48 @@ class Follow:
             authentication_result = await Account(self.account).authenticate()
 
             if authentication_result['result'] == account_access_granted:
-                # if target account exists
-                if table.find_one({"_id": target_user_id}) is not None:
-                    # get current user
-                    current_user = table.find_one({"username": self.username})
-                    # create an empty "following" key
-                    # the "follower" key will be created by MongoDB's "$push"
-                    try:
-                        current_user['following']
-                    except KeyError:
-                        current_user['following'] = []
+                # get current user's id from database
+                local_user_id = table.find_one({"username": self.username})['_id']
+                # compare target_user_id with current user's id
+                if target_user_id != local_user_id:
+                    # if target account exists
+                    if table.find_one({"_id": target_user_id}) is not None:
+                        # get current user
+                        current_user = table.find_one({"username": self.username})
+                        # create an empty "following" key
+                        # the "follower" key will be created by MongoDB's "$push"
+                        try:
+                            current_user['following']
+                        except KeyError:
+                            current_user['following'] = []
 
-                    # follow user if not following
-                    if target_user_id not in current_user['following']:
-                        # add current user's id to target user's follower
-                        table.update_one({"_id": target_user_id}, {"$push": {"follower": current_user['_id']}})
+                        # follow user if not following
+                        if target_user_id not in current_user['following']:
+                            # add current user's id to target user's follower
+                            table.update_one({"_id": target_user_id}, {"$push": {"follower": current_user['_id']}})
 
-                        # add target user's id to current user's following
-                        table.update_one({"username": self.username}, {"$push": {"following": target_user_id}})
+                            # add target user's id to current user's following
+                            table.update_one({"username": self.username}, {"$push": {"following": target_user_id}})
 
-                        return {"result": followed_user}
-                    # unfollow user if already following
+                            return {"result": followed_user}
+                        # unfollow user if already following
+                        else:
+                            # remove current user's id from target user's followers
+                            table.update_one({"_id": target_user_id}, {"$pull": {"follower": current_user['_id']}})
+
+                            # remove target user's id from current user's following
+                            table.update_one({"username": self.username}, {"$pull": {"following": target_user_id}})
+
+                            return {"result": unfollowed_user}
+                    # account does not exist
                     else:
-                        # remove current user's id from target user's followers
-                        table.update_one({"_id": target_user_id}, {"$pull": {"follower": current_user['_id']}})
-
-                        # remove target user's id from current user's following
+                        # remove deactivated account from following
+                        # this won't raise an error if "target_user_id" does not exist in "following"
                         table.update_one({"username": self.username}, {"$pull": {"following": target_user_id}})
-
-                        return {"result": unfollowed_user}
-                # account does not exist
+                        return {"result": following_account_exists_false}
+                # if target_user_id matches current login _id
                 else:
-                    # remove deactivated account from following
-                    # this won't raise an error if "target_user_id" does not exist in "following"
-                    table.update_one({"username": self.username}, {"$pull": {"following": target_user_id}})
-                    return {"result": following_account_exists_false}
+                    return {"result": following_account_matches_current_account}
             else:
                 return authentication_result
 
