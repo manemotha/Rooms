@@ -37,7 +37,7 @@ class Rooms:
                 # this id is used for CRUD functionalities on this room
                 room['_id']: str = f"room-{id(room_title)}"
                 # use user_id for room authorId
-                room['authorId']: str = table.find_one({"username": self.username})['_id']
+                room['author']: str = table.find_one({"username": self.username})['_id']
 
                 # update / create new room value
                 table.update_one({"username": self.username}, {"$push": {"rooms": room}})
