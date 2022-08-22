@@ -58,3 +58,36 @@ class Search:
 
         except pymongo.errors.ConnectionFailure:
             return {"result": "error connecting to mongodb database"}
+
+    async def search_room_by_id(self, room_id: str):
+        try:
+            self.mongodb_connection.server_info()
+            # create database connection
+            database = self.mongodb_connection[self.database_name]
+            # connect to table
+            table = database.get_collection(self.table_name)
+
+            # authenticate current login
+            authentication_result = await Account(self.account).authenticate()
+
+            if authentication_result['result'] == account_access_granted:
+                # if roomId is not empty
+                if room_id:
+                    # get room with _id matching room_id
+                    search_result = table.find_one({"rooms._id": room_id}, {"_id": 0, "rooms": {"$elemMatch": {"_id": room_id}}})
+
+                    # check if search_result is true
+                    # search_result will be true if not empty
+                    if search_result:
+                        matching_room = search_result['rooms'][0]
+                        return {"result": room_match_found, "room": matching_room}
+                    else:
+                        return {"result": room_exists_false}
+                # just incase roomId reaches here while empty
+                else:
+                    return {"result": room_exists_false}
+            else:
+                return authentication_result
+
+        except pymongo.errors.ConnectionFailure:
+            return {"result": "error connecting to mongodb database"}
