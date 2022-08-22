@@ -267,6 +267,20 @@ async def index(websocket):
                                         await websocket.send(json.dumps({"result": "userId is required"}))
                                         await websocket.close()
 
+                                # LIKE & UNLIKE ROOM
+                                elif namespace == '/like/room/id':
+                                    try:
+                                        # ENSURE: roomId exists
+                                        room_id: str = json_packet['roomId']
+
+                                        react_result = await React(user_account).like_room_by_id(room_id)
+                                        await websocket.send(json.dumps(react_result))
+                                        await websocket.close()
+                                    # key: roomId does not exist in payload
+                                    except KeyError:
+                                        await websocket.send(json.dumps({"result": "roomId is required"}))
+                                        await websocket.close()
+
                                 # unknown namespace
                                 else:
                                     await websocket.send(json.dumps({'result': unknown_namespace}))
