@@ -226,7 +226,7 @@ async def index(websocket):
                                         await websocket.close()
 
                                 # ------------ SYSTEM NAMESPACES ------------
-                                elif namespace == '/search/room':
+                                elif namespace == '/search/room/title':
                                     try:
                                         # ENSURE: roomTitle exists
                                         room_title: str = json_packet['roomTitle']
