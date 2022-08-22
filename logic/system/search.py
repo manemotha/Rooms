@@ -36,14 +36,12 @@ class Search:
                     matching_rooms = []
                     # get account with room matching title
                     # NOTICE: I want a better way to search through Mongodb as SQlite "LIKE" function
-                    matching_documents = table.find({"rooms.title": room_title})
+                    matching_documents = table.find({"rooms.title": room_title}, {"_id": 0, "rooms": {"$elemMatch": {"title": room_title}}})
 
-                    # iterate through user_account to return only matching rooms not full account
                     # NOTICE: could not find a MongoDB function to simplify this code
                     for user_account in matching_documents:
                         for room in user_account['rooms']:
-                            if room_title == room['title']:
-                                matching_rooms.append(room)
+                            matching_rooms.append(room)
 
                     # if room exists
                     if matching_rooms:
