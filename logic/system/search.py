@@ -122,3 +122,51 @@ class Search:
 
         except pymongo.errors.ConnectionFailure:
             return {"result": "error connecting to mongodb database"}
+
+    async def search_following_rooms(self):
+        try:
+            self.mongodb_connection.server_info()
+            # create database connection
+            database = self.mongodb_connection[self.database_name]
+            # connect to table
+            table = database.get_collection(self.table_name)
+
+            # authenticate current login
+            authentication_result = await Account(self.account).authenticate()
+
+            if authentication_result['result'] == account_access_granted:
+                # get current user's data from database
+                local_user = table.find_one({"username": self.username})
+
+                # if user is following other users
+                if local_user['following']:
+                    rooms_found = []
+
+                    # search for document with matching "_id"
+                    for following_user_id in local_user['following']:
+
+                        # get following user's account
+                        following_user = await self.search_user_by_id(following_user_id)
+
+                        # just incase key: rooms does not exist
+                        try:
+                            following_user['account']['rooms']
+                        except KeyError:
+                            following_user['account']['rooms'] = []
+
+                        # store rooms found in one list "rooms_found"
+                        for room in following_user['account']['rooms']:
+                            rooms_found.append(room)
+
+                    # if rooms were found
+                    if rooms_found:
+                        return {"result": "rooms found: true", "rooms": rooms_found}
+                    else:
+                        return {"result": "you are not following any user"}
+                else:
+                    return {"result": "you are not following any user"}
+            else:
+                return authentication_result
+
+        except pymongo.errors.ConnectionFailure:
+            return {"result": "error connecting to mongodb database"}
