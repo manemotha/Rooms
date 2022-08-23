@@ -267,9 +267,9 @@ async def index(websocket):
                                         await websocket.send(json.dumps({"result": "userId is required"}))
                                         await websocket.close()
 
-                                # SEARCH ROOMS OF USERS FOLLOWED BY CURRENT USER
-                                elif namespace == '/search/following/rooms':
-                                    search_result = await Search(user_account).search_following_rooms()
+                                # SEARCH ROOMS OF USERS FOLLOWED BY THIS USER
+                                elif namespace == '/search/friend/rooms':
+                                    search_result = await Search(user_account).search_friend_rooms()
                                     await websocket.send(json.dumps(search_result))
                                     await websocket.close()
 

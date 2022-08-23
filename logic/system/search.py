@@ -123,7 +123,7 @@ class Search:
         except pymongo.errors.ConnectionFailure:
             return {"result": "error connecting to mongodb database"}
 
-    async def search_following_rooms(self):
+    async def search_friend_rooms(self):
         try:
             self.mongodb_connection.server_info()
             # create database connection
