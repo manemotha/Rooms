@@ -8,6 +8,7 @@ import json
 import sqlite3
 import pymongo
 import pymongo.errors
+import uuid
 
 # modules
 from logic import *

@@ -33,7 +33,7 @@ class Account:
             else:
                 # hash user password
                 self.user_account['password']: bytes = bcrypt.hashpw(self.password.encode("utf-8"), bcrypt.gensalt())
-                self.user_account['_id'] = f"user-{id(self.username)}"
+                self.user_account['_id'] = f"user-{uuid.uuid4().hex}"
                 # create user account
                 table.insert_one(self.user_account)
                 return {"result": account_generated_true}

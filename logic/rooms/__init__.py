@@ -7,6 +7,7 @@ import os
 import json
 import sqlite3
 import pymongo
+import uuid
 
 # modules
 from logic import *

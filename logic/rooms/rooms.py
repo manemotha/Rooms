@@ -35,7 +35,7 @@ class Rooms:
                 room['title']: str = room_title
                 # generate unique id from room-title
                 # this id is used for CRUD functionalities on this room
-                room['_id']: str = f"room-{id(room_title)}"
+                room['_id']: str = f"room-{uuid.uuid4().hex}"
                 # use user_id for room authorId
                 room['author']: str = table.find_one({"username": self.username})['_id']
 
