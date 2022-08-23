@@ -89,3 +89,36 @@ class Search:
 
         except pymongo.errors.ConnectionFailure:
             return {"result": "error connecting to mongodb database"}
+
+    async def search_user_by_id(self, user_id: str):
+        try:
+            self.mongodb_connection.server_info()
+            # create database connection
+            database = self.mongodb_connection[self.database_name]
+            # connect to table
+            table = database.get_collection(self.table_name)
+
+            # authenticate current login
+            authentication_result = await Account(self.account).authenticate()
+
+            if authentication_result['result'] == account_access_granted:
+                # if userId is not empty
+                if user_id:
+                    # get user with _id matching user_id
+                    matching_user: dict = table.find_one({"_id": user_id})
+                    # remove password
+                    matching_user.pop("password")
+
+                    # check if search_result is true
+                    if matching_user:
+                        return {"result": "user match found: true", "account": matching_user}
+                    else:
+                        return {"result": account_exists_false}
+                # just incase userId reaches here while empty
+                else:
+                    return {"result": account_exists_false}
+            else:
+                return authentication_result
+
+        except pymongo.errors.ConnectionFailure:
+            return {"result": "error connecting to mongodb database"}

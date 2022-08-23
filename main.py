@@ -253,6 +253,20 @@ async def index(websocket):
                                         await websocket.send(json.dumps({"result": "roomId is required"}))
                                         await websocket.close()
 
+                                # SEARCH USER BY ID
+                                elif namespace == '/search/user/id':
+                                    try:
+                                        # ENSURE: userId exists
+                                        user_id: str = json_packet['userId']
+
+                                        search_result = await Search(user_account).search_user_by_id(user_id)
+                                        await websocket.send(json.dumps(search_result))
+                                        await websocket.close()
+                                    # key: userId does not exist
+                                    except KeyError:
+                                        await websocket.send(json.dumps({"result": "userId is required"}))
+                                        await websocket.close()
+
                                 # FOLLOW & UNFOLLOW USER
                                 elif namespace == '/follow/user':
                                     try:
