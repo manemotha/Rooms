@@ -148,15 +148,29 @@ class Search:
                         # get following user's account
                         following_user = await self.search_user_by_id(following_user_id)
 
-                        # just incase key: rooms does not exist
-                        try:
-                            following_user['account']['rooms']
-                        except KeyError:
-                            following_user['account']['rooms'] = []
+                        if following_user['result'] == user_match_found_true:
+                            # just incase key: rooms does not exist
+                            try:
+                                following_user['account']['rooms']
+                            except KeyError:
+                                following_user['account']['rooms'] = []
 
-                        # store rooms found in one list "rooms_found"
-                        for room in following_user['account']['rooms']:
-                            rooms_found.append(room)
+                            # store rooms found in one list "rooms_found"
+                            for room in following_user['account']['rooms']:
+                                # get room's author account
+                                # other keys are not required here
+                                room_author = {
+                                    "_id": following_user['account']['_id'],
+                                    "username": following_user['account']['username'],
+                                    "email": following_user['account']['email'],
+                                    "displayName": following_user['account']['displayName']
+                                }
+                                room['author'] = room_author
+                                rooms_found.append(room)
+
+                        elif following_user['result'] == user_match_found_false:
+                            # remove "_id" of account that does not exist
+                            table.update_one({"username": self.username}, {"$pull": {"following": following_user_id}})
 
                     # if rooms were found
                     if rooms_found:
