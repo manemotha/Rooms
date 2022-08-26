@@ -38,6 +38,10 @@ room_exists_false: str = "room exists: false"
 room_deleted_true: str = "room deleted: true"
 room_match_found: str = "room match found: true"
 
+# system/search
+user_match_found_true: str = "user match found: true"
+user_match_found_false: str = "user match found: false"
+
 # system/follow
 following_account_exists_false: str = "following account exists: false"
 followed_user: str = "followed user"

@@ -106,14 +106,14 @@ class Search:
                 if user_id:
                     # get user with _id matching user_id
                     matching_user: dict = table.find_one({"_id": user_id})
-                    # remove password
-                    matching_user.pop("password")
 
                     # check if search_result is true
                     if matching_user:
-                        return {"result": "user match found: true", "account": matching_user}
+                        # remove password
+                        matching_user.pop("password")
+                        return {"result": user_match_found_true, "account": matching_user}
                     else:
-                        return {"result": account_exists_false}
+                        return {"result": user_match_found_false}
                 # just incase userId reaches here while empty
                 else:
                     return {"result": account_exists_false}
