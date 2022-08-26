@@ -77,7 +77,21 @@ class Search:
                     # check if search_result is true
                     # search_result will be true if not empty
                     if search_result:
+                        # get room's author account
+                        # search_result return data like this {'rooms':[]}
+                        room_author = await self.search_user_by_id(search_result['rooms'][0]['author'])
+
+                        # other keys are not required here
+                        room_author_filtered = {
+                            "_id": room_author['account']['_id'],
+                            "username": room_author['account']['username'],
+                            "email": room_author['account']['email'],
+                            "displayName": room_author['account']['displayName']
+                        }
+
                         matching_room = search_result['rooms'][0]
+                        # set room's author to author's account
+                        matching_room['author'] = room_author_filtered
                         return {"result": room_match_found, "room": matching_room}
                     else:
                         return {"result": room_exists_false}
