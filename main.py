@@ -1,6 +1,5 @@
 from __init__ import *
 
-
 # server host address ws://HOST:PORT/
 HOST: str = '0.0.0.0'
 PORT: int = 5000
@@ -89,9 +88,8 @@ async def index(websocket):
                                                 signup_result: dict = await Account(user_account).signup()
 
                                                 if user_account['username']:
-                                                    if signup_result['result'] == account_exists_true:
+                                                    if signup_result['result'] == account_generated_true:
                                                         await websocket.send(json.dumps(signup_result))
-                                                        await websocket.close()
                                                     elif signup_result['result'] == username_unwanted_character:
                                                         await websocket.send(json.dumps(signup_result))
                                                         await websocket.close()
@@ -116,7 +114,6 @@ async def index(websocket):
                                             if update_display_name:
                                                 update_result = await Account(user_account).update_display_name(update_display_name)
                                                 await websocket.send(json.dumps(update_result))
-                                                await websocket.close()
                                             else:
                                                 # updateDisplayName is empty
                                                 await websocket.send(json.dumps({"result": "updateDisplayName is empty"}))
@@ -147,7 +144,6 @@ async def index(websocket):
 
                                                 update_result = await Account(user_account).update_username(update_username)
                                                 await websocket.send(json.dumps(update_result))
-                                                await websocket.close()
                                             else:
                                                 # updateUsername is empty
                                                 await websocket.send(json.dumps({"result": "updateUsername is length less than 5"}))
@@ -166,7 +162,6 @@ async def index(websocket):
                                             if len(update_password) >= 8:
                                                 update_result = await Account(user_account).update_password(update_password)
                                                 await websocket.send(json.dumps(update_result))
-                                                await websocket.close()
                                             else:
                                                 # updatePassword is empty
                                                 await websocket.send(json.dumps({"result": "updatePassword is length less than 8"}))
@@ -204,7 +199,6 @@ async def index(websocket):
 
                                                 update_result = await Rooms(user_account).new_room(room)
                                                 await websocket.send(json.dumps(update_result))
-                                                await websocket.close()
                                             # key: room title does not exist
                                             except KeyError:
                                                 await websocket.send(json.dumps({"result": "room title is required"}))
@@ -220,7 +214,6 @@ async def index(websocket):
 
                                             update_result = await Rooms(user_account).delete(room_id)
                                             await websocket.send(json.dumps(update_result))
-                                            await websocket.close()
                                         # key: roomId does not exist
                                         except KeyError:
                                             await websocket.send(json.dumps({"result": "roomId is required"}))
@@ -234,7 +227,6 @@ async def index(websocket):
 
                                             search_result = await Search(user_account).search_room_by_title(room_title)
                                             await websocket.send(json.dumps(search_result))
-                                            await websocket.close()
                                         # key: roomTitle does not exist
                                         except KeyError:
                                             await websocket.send(json.dumps({"result": "roomTitle is required"}))
@@ -248,7 +240,6 @@ async def index(websocket):
 
                                             search_result = await Search(user_account).search_room_by_id(room_id)
                                             await websocket.send(json.dumps(search_result))
-                                            await websocket.close()
                                         # key: roomId does not exist
                                         except KeyError:
                                             await websocket.send(json.dumps({"result": "roomId is required"}))
@@ -262,7 +253,6 @@ async def index(websocket):
 
                                             search_result = await Search(user_account).search_user_by_id(user_id)
                                             await websocket.send(json.dumps(search_result))
-                                            await websocket.close()
                                         # key: userId does not exist
                                         except KeyError:
                                             await websocket.send(json.dumps({"result": "userId is required"}))
@@ -272,7 +262,6 @@ async def index(websocket):
                                     elif namespace == '/search/friend/rooms':
                                         search_result = await Search(user_account).search_friend_rooms()
                                         await websocket.send(json.dumps(search_result))
-                                        await websocket.close()
 
                                     # FOLLOW & UNFOLLOW USER
                                     elif namespace == '/follow/user':
@@ -282,7 +271,6 @@ async def index(websocket):
 
                                             follow_result = await Follow(user_account).follow_user_by_id(user_id)
                                             await websocket.send(json.dumps(follow_result))
-                                            await websocket.close()
                                         # key: userId does not exist
                                         except KeyError:
                                             await websocket.send(json.dumps({"result": "userId is required"}))
@@ -296,7 +284,6 @@ async def index(websocket):
 
                                             react_result = await React(user_account).like_room_by_id(room_id)
                                             await websocket.send(json.dumps(react_result))
-                                            await websocket.close()
                                         # key: roomId does not exist in payload
                                         except KeyError:
                                             await websocket.send(json.dumps({"result": "roomId is required"}))
