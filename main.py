@@ -5,11 +5,6 @@ HOST: str = '0.0.0.0'
 PORT: int = 5000
 
 
-connected_accounts: dict = {
-    # "_id": websocket
-}
-
-
 # server connection gateway
 async def index(websocket):
     account_id = str
