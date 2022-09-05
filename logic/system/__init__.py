@@ -1,3 +1,4 @@
+import websockets.exceptions
 import websockets
 import asyncio
 import bcrypt
@@ -11,6 +12,8 @@ import pymongo
 # modules
 from logic import *
 from logic.variables import *
+from logic.websocket_connection import *
 from .react import *
 from .search import *
 from .follow import *
+from .notify import *
