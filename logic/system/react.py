@@ -55,13 +55,13 @@ class React:
                             # add current user's id to target user's follower
                             table.update_one({"rooms._id": target_room_id}, {"$push": {"rooms.$.likes": current_user_id}})
 
-                            return {"result": "liked room: true"}
+                            return {"result": liked_room_true}
                         # unlike room if already liked
                         else:
                             # remove current user's id from target user's followers
                             table.update_one({"rooms._id": target_room_id}, {"$pull": {"rooms.$.likes": current_user_id}})
 
-                            return {"result": "unliked room: true"}
+                            return {"result": liked_room_false}
 
                     # if target_room_author matches current login _id
                     else:

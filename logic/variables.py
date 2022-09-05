@@ -32,11 +32,17 @@ users_table_name: str = "users"
 # when you connect to MongoDB server
 users_database_name: str = "demo"
 
+
 # rooms
 room_generated_true: str = "room generated: true"
 room_exists_false: str = "room exists: false"
 room_deleted_true: str = "room deleted: true"
 room_match_found: str = "room match found: true"
+
+# room react
+liked_room_true: str = "liked room"
+liked_room_false: str = "unliked room"
+
 
 # system/search
 user_match_found_true: str = "user match found: true"
