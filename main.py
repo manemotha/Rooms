@@ -69,7 +69,9 @@ async def index(websocket):
 
                                     # ----------- ACCOUNT NAMESPACES -----------
                                     if namespace == '/signup':
+                                        # ensure email is not empty
                                         if user_account['email']:
+                                            # ensure password is not less than 8 chars
                                             if len(user_account['password']) >= 8:
 
                                                 # ensure displayName exists
@@ -82,15 +84,15 @@ async def index(websocket):
 
                                                 signup_result: dict = await Account(user_account).signup()
 
-                                                if user_account['username']:
-                                                    if signup_result['result'] == account_generated_true:
-                                                        await websocket.send(json.dumps(signup_result))
-                                                    elif signup_result['result'] == username_unwanted_character:
-                                                        await websocket.send(json.dumps(signup_result))
-                                                        await websocket.close()
-                                                    else:
-                                                        await websocket.send(json.dumps(signup_result))
-                                                        await websocket.close()
+                                                if signup_result['result'] == account_generated_true:
+                                                    await websocket.send(json.dumps(signup_result))
+                                                elif signup_result['result'] == username_unwanted_character:
+                                                    await websocket.send(json.dumps(signup_result))
+                                                    await websocket.close()
+                                                else:
+                                                    await websocket.send(json.dumps(signup_result))
+                                                    await websocket.close()
+
                                             else:
                                                 # password < 8
                                                 await websocket.send(json.dumps({"result": "password is length less than 8"}))
