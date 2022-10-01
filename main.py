@@ -25,7 +25,7 @@ async def index(websocket):
                     except KeyError:
                         await websocket.send(json.dumps({"result": "empty account value"}))
                         await websocket.close()
-                        return
+                        break
 
                     # ENSURE: username is lowercase
                     user_account['username'] = user_account['username'].lower()
@@ -37,7 +37,7 @@ async def index(websocket):
                         if char not in chars:
                             await websocket.send(json.dumps({"result": username_unwanted_character}))
                             await websocket.close()
-                            return
+                            break
 
                     try:
                         # handle namespace connection
@@ -80,7 +80,7 @@ async def index(websocket):
                                                 except KeyError:
                                                     await websocket.send(json.dumps({"result": "displayName is required"}))
                                                     await websocket.close()
-                                                    return
+                                                    break
 
                                                 signup_result: dict = await Account(user_account).signup()
 
@@ -137,7 +137,7 @@ async def index(websocket):
                                                     if char not in chars:
                                                         await websocket.send(json.dumps({"result": username_unwanted_character}))
                                                         await websocket.close()
-                                                        return
+                                                        break
 
                                                 update_result = await Account(user_account).update_username(update_username)
                                                 await websocket.send(json.dumps(update_result))
