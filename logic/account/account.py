@@ -57,7 +57,7 @@ class Account:
 
                     # passwords
                     input_password = self.password.encode('utf-8')
-                    local_password: str = table.find_one({"username": self.username})["password"]
+                    local_password: bytes = table.find_one({"username": self.username})["password"]
 
                     # compare hashed passwords
                     try:
