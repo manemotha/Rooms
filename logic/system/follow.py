@@ -76,4 +76,4 @@ class Follow:
                 return authentication_result
 
         except pymongo.errors.ConnectionFailure:
-            return {"result": "error connecting to mongodb database"}
+            return {"result": mongodb_connection_error}

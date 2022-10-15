@@ -1,6 +1,8 @@
 # this host is for a local MongoDB server
 # change this host to your MongoDB host address
 database_uri = "mongodb://localhost:27017"
+# error connecting to MongoDB
+mongodb_connection_error: str = "error connecting to mongodb database"
 
 # namespaces
 unknown_namespace: str = "unknown namespace"

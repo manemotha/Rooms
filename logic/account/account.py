@@ -39,7 +39,7 @@ class Account:
                 return {"result": account_generated_true}
 
         except pymongo.errors.ConnectionFailure:
-            return {"result": "error connecting to mongodb database"}
+            return {"result": mongodb_connection_error}
 
     async def login(self):
         try:
@@ -142,7 +142,7 @@ class Account:
                 return {"result": account_exists_false}
         # error connecting to mongodb server
         except pymongo.errors.ConnectionFailure:
-            return {"result": "error connecting to mongodb database"}
+            return {"result": mongodb_connection_error}
 
     async def authenticate(self):
         try:
@@ -172,7 +172,7 @@ class Account:
             except TypeError:
                 return {"result": account_exists_false}
         except pymongo.errors.ConnectionFailure:
-            return {"result": "error connecting to mongodb database"}
+            return {"result": mongodb_connection_error}
 
     async def update_display_name(self, update_display_name):
         try:
@@ -201,7 +201,7 @@ class Account:
             else:
                 return {"result": account_exists_false}
         except pymongo.errors.ConnectionFailure:
-            return {"result": "error connecting to mongodb database"}
+            return {"result": mongodb_connection_error}
 
     async def update_username(self, update_username: str):
         try:
@@ -239,7 +239,7 @@ class Account:
             else:
                 return {"result": account_exists_false}
         except pymongo.errors.ConnectionFailure:
-            return {"result": "error connecting to mongodb database"}
+            return {"result": mongodb_connection_error}
 
     async def update_password(self, update_password: str):
         try:
@@ -283,7 +283,7 @@ class Account:
             else:
                 return {"result": account_exists_false}
         except pymongo.errors.ConnectionFailure:
-            return {"result": "error connecting to mongodb database"}
+            return {"result": mongodb_connection_error}
 
     async def deactivate(self):
         try:
@@ -304,4 +304,4 @@ class Account:
             else:
                 return authentication_result
         except pymongo.errors.ConnectionFailure:
-            return {"result": "error connecting to mongodb database"}
+            return {"result": mongodb_connection_error}

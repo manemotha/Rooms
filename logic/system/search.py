@@ -55,7 +55,7 @@ class Search:
                 return authentication_result
 
         except pymongo.errors.ConnectionFailure:
-            return {"result": "error connecting to mongodb database"}
+            return {"result": mongodb_connection_error}
 
     async def search_room_by_id(self, room_id: str):
         try:
@@ -102,7 +102,7 @@ class Search:
                 return authentication_result
 
         except pymongo.errors.ConnectionFailure:
-            return {"result": "error connecting to mongodb database"}
+            return {"result": mongodb_connection_error}
 
     async def search_user_by_id(self, user_id: str):
         try:
@@ -135,7 +135,7 @@ class Search:
                 return authentication_result
 
         except pymongo.errors.ConnectionFailure:
-            return {"result": "error connecting to mongodb database"}
+            return {"result": mongodb_connection_error}
 
     async def search_friend_rooms(self):
         try:
@@ -197,4 +197,4 @@ class Search:
                 return authentication_result
 
         except pymongo.errors.ConnectionFailure:
-            return {"result": "error connecting to mongodb database"}
+            return {"result": mongodb_connection_error}
