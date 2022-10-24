@@ -66,229 +66,235 @@ async def index(websocket):
                             else:
                                 # ensure username is >= 5
                                 if len(user_account['username']) >= 5:
+                                    # ensure username is less than 15 characters
+                                    if len(user_account['username']) < 15:
 
-                                    # ----------- ACCOUNT NAMESPACES -----------
-                                    if namespace == '/signup':
-                                        # ensure email is not empty
-                                        if user_account['email']:
-                                            # ensure password is not less than 8 chars
-                                            if len(user_account['password']) >= 8:
+                                        # ----------- ACCOUNT NAMESPACES -----------
+                                        if namespace == '/signup':
+                                            # ensure email is not empty
+                                            if user_account['email']:
+                                                # ensure password is not less than 8 chars
+                                                if len(user_account['password']) >= 8:
 
-                                                # ensure displayName exists
-                                                try:
-                                                    user_account['displayName']
-                                                except KeyError:
-                                                    await websocket.send(json.dumps({"result": "displayName is required"}))
-                                                    await websocket.close()
-                                                    break
-
-                                                signup_result: dict = await Account(user_account).signup()
-
-                                                if signup_result['result'] == account_generated_true:
-                                                    await websocket.send(json.dumps(signup_result))
-                                                elif signup_result['result'] == username_unwanted_character:
-                                                    await websocket.send(json.dumps(signup_result))
-                                                    await websocket.close()
-                                                else:
-                                                    await websocket.send(json.dumps(signup_result))
-                                                    await websocket.close()
-
-                                            else:
-                                                # password < 8
-                                                await websocket.send(json.dumps({"result": "password is length less than 8"}))
-                                                await websocket.close()
-                                        else:
-                                            # email is empty
-                                            await websocket.send(json.dumps({"result": "email is empty"}))
-                                            await websocket.close()
-
-                                    # update displayName
-                                    elif namespace == '/update/displayname':
-                                        try:
-                                            # ENSURE: updateDisplayName exists
-                                            update_display_name: str = json_packet['updateDisplayName']
-
-                                            if update_display_name:
-                                                update_result = await Account(user_account).update_display_name(update_display_name)
-                                                await websocket.send(json.dumps(update_result))
-                                            else:
-                                                # updateDisplayName is empty
-                                                await websocket.send(json.dumps({"result": "updateDisplayName is empty"}))
-                                                await websocket.close()
-                                        # key: updateDisplayName does not exist
-                                        except KeyError:
-                                            await websocket.send(json.dumps({"result": "updateDisplayName is required"}))
-                                            await websocket.close()
-
-                                    # update username
-                                    elif namespace == '/update/username':
-                                        try:
-                                            # ENSURE: updateUsername exists
-                                            update_username: str = json_packet['updateUsername']
-
-                                            # ENSURE: updateUsername is lowercase
-                                            update_username = update_username.lower()
-
-                                            if len(update_username) >= 5:
-                                                # ENSURE: updateUsername don't have unwanted characters
-                                                for char in update_username:
-                                                    # characters besides these are declared unwanted
-                                                    chars: str = "abcdefghijklmnopqrstuvwxyz_0123456789"
-                                                    if char not in chars:
-                                                        await websocket.send(json.dumps({"result": username_unwanted_character}))
+                                                    # ensure displayName exists
+                                                    try:
+                                                        user_account['displayName']
+                                                    except KeyError:
+                                                        await websocket.send(json.dumps({"result": "displayName is required"}))
                                                         await websocket.close()
                                                         break
 
-                                                update_result = await Account(user_account).update_username(update_username)
-                                                await websocket.send(json.dumps(update_result))
+                                                    signup_result: dict = await Account(user_account).signup()
+
+                                                    if signup_result['result'] == account_generated_true:
+                                                        await websocket.send(json.dumps(signup_result))
+                                                    elif signup_result['result'] == username_unwanted_character:
+                                                        await websocket.send(json.dumps(signup_result))
+                                                        await websocket.close()
+                                                    else:
+                                                        await websocket.send(json.dumps(signup_result))
+                                                        await websocket.close()
+
+                                                else:
+                                                    # password < 8
+                                                    await websocket.send(json.dumps({"result": "password is length less than 8"}))
+                                                    await websocket.close()
                                             else:
-                                                # updateUsername is empty
-                                                await websocket.send(json.dumps({"result": "updateUsername is length less than 5"}))
+                                                # email is empty
+                                                await websocket.send(json.dumps({"result": "email is empty"}))
                                                 await websocket.close()
-                                        # key: updateUsername does not exist
-                                        except KeyError:
-                                            await websocket.send(json.dumps({"result": "updateUsername is required"}))
-                                            await websocket.close()
 
-                                    # update password
-                                    elif namespace == '/update/password':
-                                        try:
-                                            # ENSURE: updatePassword exists
-                                            update_password: str = json_packet['updatePassword']
-
-                                            if len(update_password) >= 8:
-                                                update_result = await Account(user_account).update_password(update_password)
-                                                await websocket.send(json.dumps(update_result))
-                                            else:
-                                                # updatePassword is empty
-                                                await websocket.send(json.dumps({"result": "updatePassword is length less than 8"}))
-                                                await websocket.close()
-                                        # key: updatePassword does not exist
-                                        except KeyError:
-                                            await websocket.send(json.dumps({"result": "updatePassword is required"}))
-                                            await websocket.close()
-
-                                    # deactivate
-                                    elif namespace == '/deactivate':
-                                        authentication_result: dict = await Account(user_account).deactivate()
-
-                                        if authentication_result['result'] == account_exists_false:
-                                            await websocket.send(json.dumps(authentication_result))
-                                            await websocket.close()
-                                        elif authentication_result['result'] == account_deactivated_true:
-                                            # remove connected_username
-                                            if account_id in connected_accounts:
-                                                connected_accounts.pop(account_id)
-
-                                            await websocket.send(json.dumps(authentication_result))
-                                            await websocket.close()
-                                        else:
-                                            await websocket.send(json.dumps(authentication_result))
-
-                                    # ------------ ROOM NAMESPACES ------------
-                                    elif namespace == '/room/new':
-                                        try:
-                                            # ENSURE: room exists
-                                            room: dict = json_packet['room']
+                                        # update displayName
+                                        elif namespace == '/update/displayname':
                                             try:
-                                                # ENSURE: room has a title
-                                                room_title: dict = json_packet['room']['title']
+                                                # ENSURE: updateDisplayName exists
+                                                update_display_name: str = json_packet['updateDisplayName']
 
-                                                update_result = await Rooms(user_account).new_room(room)
-                                                await websocket.send(json.dumps(update_result))
-                                            # key: room title does not exist
+                                                if update_display_name:
+                                                    update_result = await Account(user_account).update_display_name(update_display_name)
+                                                    await websocket.send(json.dumps(update_result))
+                                                else:
+                                                    # updateDisplayName is empty
+                                                    await websocket.send(json.dumps({"result": "updateDisplayName is empty"}))
+                                                    await websocket.close()
+                                            # key: updateDisplayName does not exist
                                             except KeyError:
-                                                await websocket.send(json.dumps({"result": "room title is required"}))
+                                                await websocket.send(json.dumps({"result": "updateDisplayName is required"}))
                                                 await websocket.close()
-                                        # key: room does not exist
-                                        except KeyError:
-                                            await websocket.send(json.dumps({"result": "room is required"}))
-                                            await websocket.close()
-                                    elif namespace == '/room/delete':
-                                        try:
-                                            # ENSURE: room exists
-                                            room_id: str = json_packet['roomId']
 
-                                            update_result = await Rooms(user_account).delete(room_id)
-                                            await websocket.send(json.dumps(update_result))
-                                        # key: roomId does not exist
-                                        except KeyError:
-                                            await websocket.send(json.dumps({"result": "roomId is required"}))
-                                            await websocket.close()
+                                        # update username
+                                        elif namespace == '/update/username':
+                                            try:
+                                                # ENSURE: updateUsername exists
+                                                update_username: str = json_packet['updateUsername']
 
-                                    # ------------ SYSTEM NAMESPACES ------------
-                                    elif namespace == '/search/room/title':
-                                        try:
-                                            # ENSURE: roomTitle exists
-                                            room_title: str = json_packet['roomTitle']
+                                                # ENSURE: updateUsername is lowercase
+                                                update_username = update_username.lower()
 
-                                            search_result = await Search(user_account).search_room_by_title(room_title)
+                                                if len(update_username) >= 5:
+                                                    # ENSURE: updateUsername don't have unwanted characters
+                                                    for char in update_username:
+                                                        # characters besides these are declared unwanted
+                                                        chars: str = "abcdefghijklmnopqrstuvwxyz_0123456789"
+                                                        if char not in chars:
+                                                            await websocket.send(json.dumps({"result": username_unwanted_character}))
+                                                            await websocket.close()
+                                                            break
+
+                                                    update_result = await Account(user_account).update_username(update_username)
+                                                    await websocket.send(json.dumps(update_result))
+                                                else:
+                                                    # updateUsername is empty
+                                                    await websocket.send(json.dumps({"result": "updateUsername is length less than 5"}))
+                                                    await websocket.close()
+                                            # key: updateUsername does not exist
+                                            except KeyError:
+                                                await websocket.send(json.dumps({"result": "updateUsername is required"}))
+                                                await websocket.close()
+
+                                        # update password
+                                        elif namespace == '/update/password':
+                                            try:
+                                                # ENSURE: updatePassword exists
+                                                update_password: str = json_packet['updatePassword']
+
+                                                if len(update_password) >= 8:
+                                                    update_result = await Account(user_account).update_password(update_password)
+                                                    await websocket.send(json.dumps(update_result))
+                                                else:
+                                                    # updatePassword is empty
+                                                    await websocket.send(json.dumps({"result": "updatePassword is length less than 8"}))
+                                                    await websocket.close()
+                                            # key: updatePassword does not exist
+                                            except KeyError:
+                                                await websocket.send(json.dumps({"result": "updatePassword is required"}))
+                                                await websocket.close()
+
+                                        # deactivate
+                                        elif namespace == '/deactivate':
+                                            authentication_result: dict = await Account(user_account).deactivate()
+
+                                            if authentication_result['result'] == account_exists_false:
+                                                await websocket.send(json.dumps(authentication_result))
+                                                await websocket.close()
+                                            elif authentication_result['result'] == account_deactivated_true:
+                                                # remove connected_username
+                                                if account_id in connected_accounts:
+                                                    connected_accounts.pop(account_id)
+
+                                                await websocket.send(json.dumps(authentication_result))
+                                                await websocket.close()
+                                            else:
+                                                await websocket.send(json.dumps(authentication_result))
+
+                                        # ------------ ROOM NAMESPACES ------------
+                                        elif namespace == '/room/new':
+                                            try:
+                                                # ENSURE: room exists
+                                                room: dict = json_packet['room']
+                                                try:
+                                                    # ENSURE: room has a title
+                                                    room_title: dict = json_packet['room']['title']
+
+                                                    update_result = await Rooms(user_account).new_room(room)
+                                                    await websocket.send(json.dumps(update_result))
+                                                # key: room title does not exist
+                                                except KeyError:
+                                                    await websocket.send(json.dumps({"result": "room title is required"}))
+                                                    await websocket.close()
+                                            # key: room does not exist
+                                            except KeyError:
+                                                await websocket.send(json.dumps({"result": "room is required"}))
+                                                await websocket.close()
+                                        elif namespace == '/room/delete':
+                                            try:
+                                                # ENSURE: room exists
+                                                room_id: str = json_packet['roomId']
+
+                                                update_result = await Rooms(user_account).delete(room_id)
+                                                await websocket.send(json.dumps(update_result))
+                                            # key: roomId does not exist
+                                            except KeyError:
+                                                await websocket.send(json.dumps({"result": "roomId is required"}))
+                                                await websocket.close()
+
+                                        # ------------ SYSTEM NAMESPACES ------------
+                                        elif namespace == '/search/room/title':
+                                            try:
+                                                # ENSURE: roomTitle exists
+                                                room_title: str = json_packet['roomTitle']
+
+                                                search_result = await Search(user_account).search_room_by_title(room_title)
+                                                await websocket.send(json.dumps(search_result))
+                                            # key: roomTitle does not exist
+                                            except KeyError:
+                                                await websocket.send(json.dumps({"result": "roomTitle is required"}))
+                                                await websocket.close()
+
+                                        # SEARCH USER ROOM BY ID
+                                        elif namespace == '/search/room/id':
+                                            try:
+                                                # ENSURE: roomId exists
+                                                room_id: str = json_packet['roomId']
+
+                                                search_result = await Search(user_account).search_room_by_id(room_id)
+                                                await websocket.send(json.dumps(search_result))
+                                            # key: roomId does not exist
+                                            except KeyError:
+                                                await websocket.send(json.dumps({"result": "roomId is required"}))
+                                                await websocket.close()
+
+                                        # SEARCH USER BY ID
+                                        elif namespace == '/search/user/id':
+                                            try:
+                                                # ENSURE: userId exists
+                                                user_id: str = json_packet['userId']
+
+                                                search_result = await Search(user_account).search_user_by_id(user_id)
+                                                await websocket.send(json.dumps(search_result))
+                                            # key: userId does not exist
+                                            except KeyError:
+                                                await websocket.send(json.dumps({"result": "userId is required"}))
+                                                await websocket.close()
+
+                                        # SEARCH ROOMS OF USERS FOLLOWED BY THIS USER
+                                        elif namespace == '/search/friend/rooms':
+                                            search_result = await Search(user_account).search_friend_rooms()
                                             await websocket.send(json.dumps(search_result))
-                                        # key: roomTitle does not exist
-                                        except KeyError:
-                                            await websocket.send(json.dumps({"result": "roomTitle is required"}))
+
+                                        # FOLLOW & UNFOLLOW USER
+                                        elif namespace == '/follow/user':
+                                            try:
+                                                # ENSURE: userId exists
+                                                user_id: str = json_packet['userId']
+
+                                                follow_result = await Follow(user_account).follow_user_by_id(user_id)
+                                                await websocket.send(json.dumps(follow_result))
+                                            # key: userId does not exist
+                                            except KeyError:
+                                                await websocket.send(json.dumps({"result": "userId is required"}))
+                                                await websocket.close()
+
+                                        # LIKE & UNLIKE ROOM
+                                        elif namespace == '/like/room/id':
+                                            try:
+                                                # ENSURE: roomId exists
+                                                room_id: str = json_packet['roomId']
+
+                                                react_result = await React(user_account).like_room_by_id(room_id)
+                                                await websocket.send(json.dumps(react_result))
+                                            # key: roomId does not exist in payload
+                                            except KeyError:
+                                                await websocket.send(json.dumps({"result": "roomId is required"}))
+                                                await websocket.close()
+
+                                        # unknown namespace
+                                        else:
+                                            await websocket.send(json.dumps({'result': unknown_namespace}))
                                             await websocket.close()
-
-                                    # SEARCH USER ROOM BY ID
-                                    elif namespace == '/search/room/id':
-                                        try:
-                                            # ENSURE: roomId exists
-                                            room_id: str = json_packet['roomId']
-
-                                            search_result = await Search(user_account).search_room_by_id(room_id)
-                                            await websocket.send(json.dumps(search_result))
-                                        # key: roomId does not exist
-                                        except KeyError:
-                                            await websocket.send(json.dumps({"result": "roomId is required"}))
-                                            await websocket.close()
-
-                                    # SEARCH USER BY ID
-                                    elif namespace == '/search/user/id':
-                                        try:
-                                            # ENSURE: userId exists
-                                            user_id: str = json_packet['userId']
-
-                                            search_result = await Search(user_account).search_user_by_id(user_id)
-                                            await websocket.send(json.dumps(search_result))
-                                        # key: userId does not exist
-                                        except KeyError:
-                                            await websocket.send(json.dumps({"result": "userId is required"}))
-                                            await websocket.close()
-
-                                    # SEARCH ROOMS OF USERS FOLLOWED BY THIS USER
-                                    elif namespace == '/search/friend/rooms':
-                                        search_result = await Search(user_account).search_friend_rooms()
-                                        await websocket.send(json.dumps(search_result))
-
-                                    # FOLLOW & UNFOLLOW USER
-                                    elif namespace == '/follow/user':
-                                        try:
-                                            # ENSURE: userId exists
-                                            user_id: str = json_packet['userId']
-
-                                            follow_result = await Follow(user_account).follow_user_by_id(user_id)
-                                            await websocket.send(json.dumps(follow_result))
-                                        # key: userId does not exist
-                                        except KeyError:
-                                            await websocket.send(json.dumps({"result": "userId is required"}))
-                                            await websocket.close()
-
-                                    # LIKE & UNLIKE ROOM
-                                    elif namespace == '/like/room/id':
-                                        try:
-                                            # ENSURE: roomId exists
-                                            room_id: str = json_packet['roomId']
-
-                                            react_result = await React(user_account).like_room_by_id(room_id)
-                                            await websocket.send(json.dumps(react_result))
-                                        # key: roomId does not exist in payload
-                                        except KeyError:
-                                            await websocket.send(json.dumps({"result": "roomId is required"}))
-                                            await websocket.close()
-
-                                    # unknown namespace
                                     else:
-                                        await websocket.send(json.dumps({'result': unknown_namespace}))
+                                        # username is greater than 15
+                                        await websocket.send(json.dumps({"result": "username is length greater than 15"}))
                                         await websocket.close()
                                 else:
                                     # username is less than 5
