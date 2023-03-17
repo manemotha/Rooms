@@ -1,4 +1,4 @@
-# ROOMS
+## ROOMS ( websocket server )
 ______________________
 Is a realtime websocket server for a room / group like chat application. Groups are referred to as **Rooms** and users as **Mates** or **RoomMates** if they have a mutual room.
 
@@ -15,7 +15,7 @@ This document will tell you more on how the server processes it data from its cl
 \
 Reading this documentation you will have enough experience on how to work only with functionalities that have already been pushed by the `maintainers` of this Repository.
 
-### Introduction:
+## Introduction:
 
 The server expects only `JSON` format data from the client as it uses `MongoDB Database` to store data. `Namespace` key is required to tell the server where the client is connecting to. Information like **Username**, **Email**, **Password** is processed before running any function to verify if it meets the requirements **Length** & **Unwanted Symbols**.
 \
