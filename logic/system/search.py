@@ -152,47 +152,50 @@ class Search:
                 # get current user's data from database
                 local_user = table.find_one({"username": self.username})
 
-                # if user is following other users
-                if local_user['following']:
-                    rooms_found = []
-
-                    # search for document with matching "_id"
-                    for following_user_id in local_user['following']:
-
-                        # get following user's account
-                        following_user = await self.search_user_by_id(following_user_id)
-
-                        if following_user['result'] == user_match_found_true:
-                            # just incase key: rooms does not exist
-                            try:
-                                following_user['account']['rooms']
-                            except KeyError:
-                                following_user['account']['rooms'] = []
-
-                            # store rooms found in one list "rooms_found"
-                            for room in following_user['account']['rooms']:
-                                # get room's author account
-                                # other keys are not required here
-                                room_author = {
-                                    "_id": following_user['account']['_id'],
-                                    "username": following_user['account']['username'],
-                                    "email": following_user['account']['email'],
-                                    "displayName": following_user['account']['displayName']
-                                }
-                                room['author'] = room_author
-                                rooms_found.append(room)
-
-                        elif following_user['result'] == user_match_found_false:
-                            # remove "_id" of account that does not exist
-                            table.update_one({"username": self.username}, {"$pull": {"following": following_user_id}})
-
-                    # if rooms were found
-                    if rooms_found:
-                        return {"result": "rooms found: true", "rooms": rooms_found}
-                    else:
-                        return {"result": "you are not following any user"}
-                else:
+                # check if user is following any other user
+                try:
+                    local_user['following']
+                except KeyError:
                     return {"result": "you are not following any user"}
+
+                # stores a list of rooms found from user's following
+                rooms_found = []
+
+                # search for document with matching "_id"
+                for following_user_id in local_user['following']:
+
+                    # get following user's account
+                    following_user = await self.search_user_by_id(following_user_id)
+
+                    if following_user['result'] == user_match_found_true:
+                        # just incase key: rooms does not exist
+                        try:
+                            following_user['account']['rooms']
+                        except KeyError:
+                            following_user['account']['rooms'] = []
+
+                        # store rooms found in one list "rooms_found"
+                        for room in following_user['account']['rooms']:
+                            # get room's author account
+                            # other keys are not required here
+                            room_author = {
+                                "_id": following_user['account']['_id'],
+                                "username": following_user['account']['username'],
+                                "email": following_user['account']['email'],
+                                "displayName": following_user['account']['displayName']
+                            }
+                            room['author'] = room_author
+                            rooms_found.append(room)
+
+                    elif following_user['result'] == user_match_found_false:
+                        # remove "_id" of account that does not exist
+                        table.update_one({"username": self.username}, {"$pull": {"following": following_user_id}})
+
+                # if rooms were found
+                if rooms_found:
+                    return {"result": "rooms found: true", "rooms": rooms_found}
+                else:
+                    return {"result": "you follow users with 0 rooms"}
             else:
                 return authentication_result
 
